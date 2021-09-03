@@ -15,11 +15,12 @@ import javax.validation.Valid;
 @RequestMapping(value = "/users")
 @AllArgsConstructor
 public class UserController {
-    UserFacade userFacade;
 
-    @PostMapping
-    public ResponseEntity<String> registerUser(@RequestBody @Valid UserDto userDto) {
+    private final UserFacade userFacade;
+
+    @PostMapping(path = "/create")
+    public ResponseEntity<UserDto> registerUser(@RequestBody @Valid UserDto userDto) {
         userFacade.createUser(userDto);
-        return new ResponseEntity(userDto.toString(), HttpStatus.CREATED);
+        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
     }
 }
