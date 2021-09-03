@@ -18,7 +18,7 @@ public class UserController {
 
     private final UserFacade userFacade;
 
-    @PostMapping(path = "/create")
+    @PostMapping(path = "/register")
     public ResponseEntity<UserDto> registerUser(@RequestBody @Valid UserDto userDto) {
         userFacade.createUser(userDto);
         return new ResponseEntity<>(userDto, HttpStatus.CREATED);
