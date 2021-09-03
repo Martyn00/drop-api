@@ -8,11 +8,11 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Table(name = "users")
-@Entity
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
+@Entity
+@NoArgsConstructor
 public class UserModel {
 
     @Id
@@ -37,4 +37,5 @@ public class UserModel {
 
     @Column(name = "lastname")
     private String lastName;
+
 }

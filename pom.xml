@@ -153,6 +153,7 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
+            CREATED
         </repository>
     </repositories>
     <pluginRepositories>

@@ -12,11 +12,14 @@ import org.springframework.stereotype.Component;
 public class UserFacade {
 
     private final UserService userService;
+    private final RootFolderFacade rootFolderFacade;
     private final ModelMapper modelMapper;
 
     public UserDto createUser(UserDto userDto) {
         UserModel userModel = modelMapper.map(userDto, UserModel.class);
-        return modelMapper.map(userService.saveUser(userModel), UserDto.class);
+        UserDto obtainedUserDto = modelMapper.map(userService.saveUser(userModel), UserDto.class);
+        rootFolderFacade.createRootFoldersForUser(userModel);
+        return obtainedUserDto;
     }
 
 }
