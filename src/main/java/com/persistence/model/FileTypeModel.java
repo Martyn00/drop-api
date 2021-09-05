@@ -22,4 +22,8 @@ public class FileTypeModel {
 
     @Column(name = "typeName")
     private String typeName;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
+
 }

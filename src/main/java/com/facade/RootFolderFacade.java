@@ -32,11 +32,11 @@ public class RootFolderFacade {
     }
 
     private RootFolderModel createSharedFolder(UserModel userModel) {
-        return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + PRIVATE);
+        return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
     }
 
     private RootFolderModel createPrivateFolder(UserModel userModel) {
-        return createFolderModel(userModel, PRIVATE, Boolean.FALSE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
+        return createFolderModel(userModel, PRIVATE, Boolean.FALSE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + PRIVATE);
     }
 
     private RootFolderModel createFolderModel(UserModel userModel, String folderName, Boolean isShared, String path) {

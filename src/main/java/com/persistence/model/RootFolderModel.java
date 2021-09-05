@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "users_root_folders")
+@Table(name = "root_folders")
 public class RootFolderModel {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -30,10 +30,11 @@ public class RootFolderModel {
     @Column(name = "isShared")
     private Boolean shared;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     private UserModel folderCreator;
 
     @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rootFolderModel_id", referencedColumnName = "id")
     private List<ContentFileModel> files;
 
 }

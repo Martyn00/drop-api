@@ -3,16 +3,18 @@ package com.persistence.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@ToString
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "users_folders_folders")
+@Table(name = "folders_content")
 public class ContentFileModel {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -22,14 +24,11 @@ public class ContentFileModel {
     @Column(name = "uuid")
     private String uuid;
 
-    @Column(name = "folderName")
-    private String folderName;
+    @Column(name = "fileName")
+    private String fileName;
 
     @Column(name = "path")
     private String path;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    private RootFolderModel rootFolder;
 
     @Column(name = "addedDate")
     private LocalDate addedDate;
@@ -40,10 +39,20 @@ public class ContentFileModel {
     @Column(name = "fileSize")
     private Double size;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private UserModel fileCreator;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    private List<ContentFileModel> files;
+    @OneToOne(fetch = FetchType.LAZY)
+    private FileTypeModel fileTypeModel;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    private ContentFileModel parentFolder;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<ContentFileModel> subFiles;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rootFolderModel_id")
+    private RootFolderModel rootFolder;
 
 }

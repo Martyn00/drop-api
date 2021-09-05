@@ -1,10 +1,16 @@
 package com.service;
 
+import com.persistence.model.ContentFileModel;
 import com.persistence.repository.ContentFileRepository;
-import org.springframework.stereotype.Component;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
+@AllArgsConstructor
 public class ContentFileService {
     ContentFileRepository contentFileRepository;
 
+    public void save(ContentFileModel fileModel) {
+        contentFileRepository.save(fileModel);
+    }
 }
