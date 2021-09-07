@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class ContentFileService {
     ContentFileRepository contentFileRepository;
 
-    public void save(ContentFileModel fileModel) {
-        contentFileRepository.save(fileModel);
+    public ContentFileModel save(ContentFileModel fileModel) {
+        return contentFileRepository.save(fileModel);
     }
 }

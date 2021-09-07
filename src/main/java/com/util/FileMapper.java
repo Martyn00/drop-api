@@ -46,7 +46,11 @@ public class FileMapper {
                 .stream()
                 .map(this::mapContentFileToDirectoryDto)
                 .collect(Collectors.toList()));
-        directoryDto.setParent(mapContentFileToDirectoryDto(contentFile.getParentFolder()));
+        if (contentFile.getParentFolder() == null) {
+            directoryDto.setParentUuid("");
+        } else {
+            directoryDto.setParentUuid(contentFile.getParentFolder().getUuid());
+        }
         return directoryDto;
     }
 }

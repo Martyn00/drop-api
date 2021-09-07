@@ -3,13 +3,11 @@ package com.persistence.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
 
-@ToString
 @Getter
 @Setter
 @NoArgsConstructor
@@ -39,20 +37,19 @@ public class ContentFileModel {
     @Column(name = "fileSize")
     private Double size;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private UserModel fileCreator;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     private FileTypeModel fileTypeModel;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    private ContentFileModel parentFolder;
 
     @OneToMany(fetch = FetchType.EAGER)
     private List<ContentFileModel> subFiles;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rootFolderModel_id")
+    @ManyToOne(fetch = FetchType.EAGER)
     private RootFolderModel rootFolder;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    private ContentFileModel parentFolder;
 
 }

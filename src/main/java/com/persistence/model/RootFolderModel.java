@@ -33,8 +33,7 @@ public class RootFolderModel {
     @OneToOne(fetch = FetchType.EAGER)
     private UserModel folderCreator;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rootFolderModel_id", referencedColumnName = "id")
+    @OneToMany(fetch = FetchType.EAGER)
     private List<ContentFileModel> files;
 
 }
