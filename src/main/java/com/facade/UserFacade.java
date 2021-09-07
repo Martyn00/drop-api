@@ -1,6 +1,9 @@
 package com.facade;
 
-import com.controller.dto.*;
+import com.controller.dto.AuthenticationDto;
+import com.controller.dto.DisplayUserDto;
+import com.controller.dto.LoggedResponseDto;
+import com.controller.dto.UserDto;
 import com.exception.InvalidCredentialsException;
 import com.exception.UserNotFoundException;
 import com.persistence.model.UserModel;
@@ -23,13 +26,15 @@ public class UserFacade {
     public DisplayUserDto createUser(UserDto userDto) {
         UserModel userModel = modelMapper.map(userDto, UserModel.class);
         userModel.setPassword(encoder.encode(userDto.getPassword()));
-        return modelMapper.map(userService.saveUser(userModel), DisplayUserDto.class);
+        DisplayUserDto displayUserDto = modelMapper.map(userService.saveUser(userModel), DisplayUserDto.class);
+        rootFolderFacade.createRootFoldersForUser(userModel);
+        return displayUserDto;
     }
 
-    public LoggedResponseDto createLoggedResponse(String token, AuthenticationDto authenticationDto){
+    public LoggedResponseDto createLoggedResponse(String token, AuthenticationDto authenticationDto) {
         UserModel userModel = userService.findUserByUsername(authenticationDto.getUsername());
-        LoggedUserDto loggedUserDto = modelMapper.map(userModel, LoggedUserDto.class);
-        return new LoggedResponseDto(token, loggedUserDto);
+        DisplayUserDto displayUserDto = modelMapper.map(userModel, DisplayUserDto.class);
+        return new LoggedResponseDto(token, displayUserDto);
     }
 
     public void checkCredentials(AuthenticationDto authenticationDto){

@@ -14,5 +14,5 @@ public class LoggedResponseDto {
     private String token;
 
     @JsonProperty(value = "loggedUser")
-    private LoggedUserDto loggedUserDto;
+    private DisplayUserDto displayUserDto;
 }
