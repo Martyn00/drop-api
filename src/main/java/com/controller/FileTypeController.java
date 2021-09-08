@@ -17,11 +17,11 @@ public class FileTypeController {
 
     @GetMapping
     public ResponseEntity<List<FileTypeDto>> getAllFileTypes() {
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(fileTypeFacade.getAllFileTypes(), HttpStatus.OK);
     }
 
     @PostMapping()
-    public ResponseEntity<FileTypeDto> AddFileType(@RequestParam String type) {
+    public ResponseEntity<FileTypeDto> AddFileType(@RequestParam("type") String type) {
         return new ResponseEntity<>(fileTypeFacade.addFileType(type), HttpStatus.CREATED);
     }
 }

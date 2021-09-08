@@ -6,6 +6,8 @@ import com.persistence.repository.FileTypeRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class FileTypeService {
@@ -22,4 +24,7 @@ public class FileTypeService {
         return fileTypeRepository.save(fileType);
     }
 
+    public List<FileTypeModel> getAllFileTypes() {
+        return fileTypeRepository.findAll();
+    }
 }
