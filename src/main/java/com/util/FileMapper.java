@@ -62,7 +62,7 @@ public class FileMapper {
         FileMetadataDto fileMetadataDto = modelMapper.map(contentFileModel, FileMetadataDto.class);
         fileMetadataDto.setFileCreator(contentFileModel.getFileCreator().getUsername());
         if (contentFileModel.getParentFolder() == null) {
-            fileMetadataDto.setParentUuid(null);
+            fileMetadataDto.setParentUuid(contentFileModel.getRootFolder().getUuid());
         } else {
             fileMetadataDto.setParentUuid(contentFileModel.getParentFolder().getUuid());
         }

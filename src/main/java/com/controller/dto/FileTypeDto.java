@@ -19,4 +19,5 @@ public class FileTypeDto {
 
     @JsonProperty(value = "is_active")
     private Boolean isActive;
+
 }
