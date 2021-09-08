@@ -1,14 +1,12 @@
 package com.controller;
 
-import com.controller.dto.ContentFileDto;
+import com.controller.dto.ContentDto;
 import com.controller.dto.DirectoriesDto;
 import com.facade.FolderFacade;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/folders")
@@ -29,7 +27,7 @@ public class FolderController {
     }
 
     @GetMapping("/content/{folderUuid}")
-    public ResponseEntity<List<ContentFileDto>> getAllContent(@PathVariable String folderUuid) {
+    public ResponseEntity<ContentDto> getAllContent(@PathVariable String folderUuid) {
         return new ResponseEntity<>(folderFacade.getAllFiles(folderUuid), HttpStatus.OK);
     }
 }

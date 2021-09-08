@@ -1,8 +1,8 @@
 package com.util;
 
-import com.controller.dto.ContentFileDto;
 import com.controller.dto.DirectoriesDto;
 import com.controller.dto.DirectoryDto;
+import com.controller.dto.FileMetadataDto;
 import com.persistence.model.ContentFileModel;
 import com.persistence.model.RootFolderModel;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ public class FileMapper {
 
     private DirectoryDto mapRootFolderToDirectoryDto(RootFolderModel rootFolder) {
         DirectoryDto directoryDto = new DirectoryDto();
-        directoryDto.setFileName(rootFolder.getFolderName());
+        directoryDto.setFileName(rootFolder.getFileName());
         directoryDto.setUuid(rootFolder.getUuid());
         directoryDto.setPath(rootFolder.getPath());
         List<ContentFileModel> files = rootFolder.getFiles()
@@ -58,10 +58,14 @@ public class FileMapper {
         return directoryDto;
     }
 
-    public ContentFileDto mapContentFileToFileMetadataDto(ContentFileModel contentFileModel) {
-        ContentFileDto fileMetadataDto = modelMapper.map(contentFileModel, ContentFileDto.class);
+    public FileMetadataDto mapContentFileToFileMetadataDto(ContentFileModel contentFileModel) {
+        FileMetadataDto fileMetadataDto = modelMapper.map(contentFileModel, FileMetadataDto.class);
         fileMetadataDto.setFileCreator(contentFileModel.getFileCreator().getUsername());
-        fileMetadataDto.setParentUuid(contentFileModel.getParentFolder().getUuid());
+        if (contentFileModel.getParentFolder() == null) {
+            fileMetadataDto.setParentUuid(null);
+        } else {
+            fileMetadataDto.setParentUuid(contentFileModel.getParentFolder().getUuid());
+        }
         return fileMetadataDto;
     }
 }

@@ -1,6 +1,7 @@
 package com.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer;
@@ -15,7 +16,8 @@ import java.time.ZonedDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContentFileDto {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class FileMetadataDto {
 
     @JsonProperty(value = "id")
     private String uuid;

@@ -1,7 +1,8 @@
 package com.facade;
 
-import com.controller.dto.ContentFileDto;
+import com.controller.dto.ContentDto;
 import com.controller.dto.DirectoriesDto;
+import com.controller.dto.FileMetadataDto;
 import com.exception.ServiceException;
 import com.persistence.model.ContentFileModel;
 import com.persistence.model.FileTypeModel;
@@ -13,6 +14,7 @@ import com.service.RootFolderService;
 import com.service.UserService;
 import com.util.FileMapper;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -34,6 +36,8 @@ public class FolderFacade {
 
     private FileTypeService fileTypeService;
 
+    private ModelMapper modelMapper;
+
     public DirectoriesDto getDirectories(String uuid) {
         List<RootFolderModel> rootFolders = getRootFolders(uuid);
         DirectoriesDto directoriesDto = fileMapper.mapRootFolders(rootFolders);
@@ -45,17 +49,25 @@ public class FolderFacade {
         return rootFolderService.getAllRootFoldersByUserUuid(userModel);
     }
 
-    public List<ContentFileDto> getAllFiles(String uuid) {
+    public ContentDto getAllFiles(String uuid) {
+        FileMetadataDto contentFileParentDto;
         List<ContentFileModel> contentFiles;
         try {
-            contentFiles = rootFolderService.getRootFolderByUuid(uuid).getFiles();
+            RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(uuid);
+            contentFiles = rootFolderModel.getFiles();
+            contentFileParentDto = modelMapper.map(rootFolderModel, FileMetadataDto.class);
+            contentFileParentDto.setFileCreator(rootFolderModel.getFolderCreator().getUsername());
         } catch (ServiceException exception) {
-            contentFiles = contentFileService.findContentFileModelByUuid(uuid).getSubFiles();
+            ContentFileModel contentFileModel = contentFileService.findContentFileModelByUuid(uuid);
+            contentFiles = contentFileModel.getSubFiles();
+            contentFileParentDto = modelMapper.map(contentFileModel, FileMetadataDto.class);
+            contentFileParentDto.setFileCreator(contentFileModel.getFileCreator().getUsername());
         }
-        return contentFiles
+        List<FileMetadataDto> contentFileDtos = contentFiles
                 .stream()
                 .map(contentFileModel -> fileMapper.mapContentFileToFileMetadataDto(contentFileModel))
                 .collect(Collectors.toList());
+        return new ContentDto(contentFileParentDto, contentFileDtos);
     }
 
 
