@@ -28,7 +28,6 @@ public class FileMapper {
         DirectoryDto directoryDto = new DirectoryDto();
         directoryDto.setFileName(rootFolder.getFolderName());
         directoryDto.setUuid(rootFolder.getUuid());
-        System.out.println(rootFolder.getFiles());
         directoryDto.setPath(rootFolder.getPath());
         List<ContentFileModel> files = rootFolder.getFiles()
                 .stream()
