@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FileTypeDto {
-    @JsonProperty(value = "uuid")
+    @JsonProperty(value = "id")
     private String uuid;
 
     @JsonProperty(value = "type")
