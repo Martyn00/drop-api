@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class FileMapper {
     public static final String DIRECTORY = "directory";
     private final ModelMapper modelMapper;
+
     public DirectoriesDto mapRootFolders(List<RootFolderModel> rootFolders) {
         DirectoriesDto directoriesDto = new DirectoriesDto();
         directoriesDto.setDirectories(rootFolders.stream().map(this::mapRootFolderToDirectoryDto).collect(Collectors.toList()));
