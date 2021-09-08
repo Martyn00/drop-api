@@ -30,4 +30,10 @@ public class RootFolderService {
             throw new ServiceException("The folder does not exist");
         });
     }
+
+    public RootFolderModel getRootFolderByUuid(String uuid) {
+        return rootFolderRepository.findRootFolderModelByUuid(uuid).orElseThrow(() -> {
+            throw new ServiceException("The folder does not exist");
+        });
+    }
 }

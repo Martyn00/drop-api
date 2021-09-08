@@ -1,6 +1,8 @@
 package com.facade;
 
+import com.controller.dto.ContentFileDto;
 import com.controller.dto.DirectoriesDto;
+import com.exception.ServiceException;
 import com.persistence.model.ContentFileModel;
 import com.persistence.model.FileTypeModel;
 import com.persistence.model.RootFolderModel;
@@ -13,10 +15,11 @@ import com.util.FileMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -42,6 +45,20 @@ public class FolderFacade {
         return rootFolderService.getAllRootFoldersByUserUuid(userModel);
     }
 
+    public List<ContentFileDto> getAllFiles(String uuid) {
+        List<ContentFileModel> contentFiles;
+        try {
+            contentFiles = rootFolderService.getRootFolderByUuid(uuid).getFiles();
+        } catch (ServiceException exception) {
+            contentFiles = contentFileService.findContentFileModelByUuid(uuid).getSubFiles();
+        }
+        return contentFiles
+                .stream()
+                .map(contentFileModel -> fileMapper.mapContentFileToFileMetadataDto(contentFileModel))
+                .collect(Collectors.toList());
+    }
+
+
     public void createSalut(String uuid) {
         FileTypeModel fileTypeModel = new FileTypeModel();
         fileTypeModel.setTypeName("directory");
@@ -52,8 +69,8 @@ public class FolderFacade {
         contentFileModel.setFileName("salut");
         contentFileModel.setUuid(UUID.randomUUID().toString());
         contentFileModel.setFileCreator(userModel);
-        contentFileModel.setAddedDate(LocalDate.now());
-        contentFileModel.setLastModifiedDate(LocalDate.now());
+        contentFileModel.setAddedDate(ZonedDateTime.now());
+        contentFileModel.setLastModifiedDate(ZonedDateTime.now());
         contentFileModel.setPath("/marian24/private/salut");
         RootFolderModel rootFolderModel = rootFolderService.getAllRootFoldersByUserUuid(userModel).get(0);
         contentFileModel.setRootFolder(rootFolderModel);
@@ -72,8 +89,8 @@ public class FolderFacade {
         contentFileModel.setFileName("servus");
         contentFileModel.setUuid(UUID.randomUUID().toString());
         contentFileModel.setFileCreator(userModel);
-        contentFileModel.setAddedDate(LocalDate.now());
-        contentFileModel.setLastModifiedDate(LocalDate.now());
+        contentFileModel.setAddedDate(ZonedDateTime.now());
+        contentFileModel.setLastModifiedDate(ZonedDateTime.now());
         contentFileModel.setParentFolder(contentFileModelParent);
         contentFileModel.setPath("/marian24/private/salut/servus");
         RootFolderModel rootFolderModel = rootFolderService.getAllRootFoldersByUserUuid(userModel).get(0);

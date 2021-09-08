@@ -25,6 +25,6 @@ public class DisplayUserDto {
     @JsonProperty(value = "username")
     private String username;
 
-    @JsonProperty(value = "uuid")
+    @JsonProperty(value = "id")
     private String uuid;
 }
