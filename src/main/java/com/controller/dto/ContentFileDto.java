@@ -23,6 +23,9 @@ public class ContentFileDto {
     @JsonProperty(value = "fileName")
     private String fileName;
 
+    @JsonProperty(value = "path")
+    private String path;
+
     @JsonProperty(value = "addedDate")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonSerialize(using = ZonedDateTimeSerializer.class)

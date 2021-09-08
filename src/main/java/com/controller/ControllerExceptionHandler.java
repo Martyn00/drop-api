@@ -27,7 +27,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Object> handleNotFoundException(InvalidCredentialsException exception) {
-        return createResponseBody(exception.getMessage(), HttpStatus.UNAUTHORIZED, Collections.emptyList());
+        return createResponseBody(exception.getMessage(), HttpStatus.NOT_FOUND, Collections.emptyList());
     }
 
     @ExceptionHandler(ServiceException.class)
