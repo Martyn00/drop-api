@@ -62,6 +62,11 @@ public class FolderFacade {
             contentFiles = contentFileModel.getSubFiles();
             contentFileParentDto = modelMapper.map(contentFileModel, FileMetadataDto.class);
             contentFileParentDto.setFileCreator(contentFileModel.getFileCreator().getUsername());
+            if (contentFileModel.getParentFolder().equals(null)) {
+                contentFileParentDto.setParentUuid(contentFileModel.getRootFolder().getUuid());
+            } else {
+                contentFileParentDto.setParentUuid(contentFileModel.getParentFolder().getUuid());
+            }
         }
         List<FileMetadataDto> contentFileDtos = contentFiles
                 .stream()
