@@ -126,19 +126,6 @@ public class FolderFacade {
         ContentFileModel parentFolder;
         UserModel creator = userService.findUserByUsername(username);
         ContentFileModel createdFolder = new ContentFileModel();
-        try {
-            parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
-        } catch (ServiceException ex) {
-            parentFolder = null;
-            RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
-            createdFolder.setPath(rootFolder.getPath() + "/" + createFolderDto.getFolderName());
-            createdFolder.setParentFolder(null);
-        }
-        if (parentFolder != null) {
-            createdFolder.setPath(parentFolder.getPath() + "/" + createFolderDto.getFolderName());
-            createdFolder.setRootFolder(parentFolder.getRootFolder());
-        }
-        createdFolder.setParentFolder(parentFolder);
         createdFolder.setFileName(createFolderDto.getFolderName());
         createdFolder.setFileCreator(creator);
         createdFolder.setAddedDate(ZonedDateTime.now());
@@ -147,8 +134,25 @@ public class FolderFacade {
         createdFolder.setLastModifiedDate(ZonedDateTime.now());
         FileTypeModel fileTypeModel = fileTypeService.getFileTypeByName("directory");
         createdFolder.setFileTypeModel(fileTypeModel);
-        folderCreator.createFolder(createdFolder.getPath());
-        contentFileService.save(createdFolder);
+        try {
+            parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
+            createdFolder.setParentFolder(parentFolder);
+            createdFolder.setPath(parentFolder.getPath() + "/" + createFolderDto.getFolderName());
+            createdFolder.setRootFolder(parentFolder.getRootFolder());
+            parentFolder.getSubFiles().add(createdFolder);
+            folderCreator.createFolder(createdFolder.getPath());
+            contentFileService.save(createdFolder);
+            contentFileService.save(parentFolder);
+        } catch (ServiceException ex) {
+            RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
+            createdFolder.setPath(rootFolder.getPath() + "/" + createFolderDto.getFolderName());
+            createdFolder.setRootFolder(rootFolder);
+            createdFolder.setParentFolder(null);
+            rootFolder.getFiles().add(createdFolder);
+            folderCreator.createFolder(createdFolder.getPath());
+            contentFileService.save(createdFolder);
+            rootFolderService.saveRootFolder(rootFolder);
+        }
         return fileMapper.mapContentFileToDirectoryDto(createdFolder);
     }
 }
