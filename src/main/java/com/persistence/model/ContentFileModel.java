@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Getter
@@ -29,10 +29,10 @@ public class ContentFileModel {
     private String path;
 
     @Column(name = "addedDate")
-    private LocalDate addedDate;
+    private ZonedDateTime addedDate;
 
     @Column(name = "lastModifiedDate")
-    private LocalDate lastModifiedDate;
+    private ZonedDateTime lastModifiedDate;
 
     @Column(name = "fileSize")
     private Double size;

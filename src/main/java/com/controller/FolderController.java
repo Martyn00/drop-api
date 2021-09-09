@@ -1,5 +1,6 @@
 package com.controller;
 
+import com.controller.dto.ContentDto;
 import com.controller.dto.DirectoriesDto;
 import com.facade.FolderFacade;
 import lombok.AllArgsConstructor;
@@ -23,5 +24,10 @@ public class FolderController {
     public ResponseEntity<DirectoriesDto> createSalut(@PathVariable String uuid) {
         folderFacade.createSalut(uuid);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/content/{folderUuid}")
+    public ResponseEntity<ContentDto> getAllContent(@PathVariable String folderUuid) {
+        return new ResponseEntity<>(folderFacade.getAllFiles(folderUuid), HttpStatus.OK);
     }
 }

@@ -43,7 +43,7 @@ public class RootFolderFacade {
         RootFolderModel rootFolderModel = new RootFolderModel();
         rootFolderModel.setFolderCreator(userModel);
         rootFolderModel.setUuid(UUID.randomUUID().toString());
-        rootFolderModel.setFolderName(folderName);
+        rootFolderModel.setFileName(folderName);
         rootFolderModel.setShared(isShared);
         rootFolderModel.setPath(path);
         rootFolderModel.setFiles(Collections.emptyList());
