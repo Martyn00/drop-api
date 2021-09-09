@@ -1,9 +1,8 @@
 package com.facade;
 
-import com.controller.dto.ContentDto;
-import com.controller.dto.DirectoriesDto;
-import com.controller.dto.FileMetadataDto;
+import com.controller.dto.*;
 import com.exception.ServiceException;
+import com.foldermanipulation.FolderCreator;
 import com.persistence.model.ContentFileModel;
 import com.persistence.model.FileTypeModel;
 import com.persistence.model.RootFolderModel;
@@ -36,7 +35,7 @@ public class FolderFacade {
 
     private FileTypeService fileTypeService;
 
-    private ModelMapper modelMapper;
+    private FolderCreator folderCreator;
 
     public DirectoriesDto getDirectories(String uuid) {
         List<RootFolderModel> rootFolders = getRootFolders(uuid);

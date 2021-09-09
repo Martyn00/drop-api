@@ -1,6 +1,7 @@
 package com.controller;
 
 import com.controller.dto.ContentDto;
+import com.controller.dto.CreateFolderDto;
 import com.controller.dto.DirectoriesDto;
 import com.facade.FolderFacade;
 import lombok.AllArgsConstructor;
