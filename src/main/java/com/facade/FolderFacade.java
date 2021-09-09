@@ -1,9 +1,8 @@
 package com.facade;
 
-import com.controller.dto.ContentDto;
-import com.controller.dto.DirectoriesDto;
-import com.controller.dto.FileMetadataDto;
+import com.controller.dto.*;
 import com.exception.ServiceException;
+import com.foldermanipulation.FolderCreator;
 import com.persistence.model.ContentFileModel;
 import com.persistence.model.FileTypeModel;
 import com.persistence.model.RootFolderModel;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,6 +35,8 @@ public class FolderFacade {
     private UserService userService;
 
     private FileTypeService fileTypeService;
+
+    private FolderCreator folderCreator;
 
     private ModelMapper modelMapper;
 
@@ -118,5 +120,39 @@ public class FolderFacade {
         contentFileModelParent.setSubFiles(contentFileModels);
         contentFileService.save(contentFileModel);
         contentFileService.save(contentFileModelParent);
+    }
+
+    public DirectoryDto createFolder(CreateFolderDto createFolderDto, String username) {
+        ContentFileModel parentFolder;
+        UserModel creator = userService.findUserByUsername(username);
+        ContentFileModel createdFolder = new ContentFileModel();
+        createdFolder.setFileName(createFolderDto.getFolderName());
+        createdFolder.setFileCreator(creator);
+        createdFolder.setAddedDate(ZonedDateTime.now());
+        createdFolder.setSubFiles(Collections.emptyList());
+        createdFolder.setUuid(UUID.randomUUID().toString());
+        createdFolder.setLastModifiedDate(ZonedDateTime.now());
+        FileTypeModel fileTypeModel = fileTypeService.getFileTypeByName("directory");
+        createdFolder.setFileTypeModel(fileTypeModel);
+        try {
+            parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
+            createdFolder.setParentFolder(parentFolder);
+            createdFolder.setPath(parentFolder.getPath() + "/" + createFolderDto.getFolderName());
+            createdFolder.setRootFolder(parentFolder.getRootFolder());
+            parentFolder.getSubFiles().add(createdFolder);
+            folderCreator.createFolder(createdFolder.getPath());
+            contentFileService.save(createdFolder);
+            contentFileService.save(parentFolder);
+        } catch (ServiceException ex) {
+            RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
+            createdFolder.setPath(rootFolder.getPath() + "/" + createFolderDto.getFolderName());
+            createdFolder.setRootFolder(rootFolder);
+            createdFolder.setParentFolder(null);
+            rootFolder.getFiles().add(createdFolder);
+            folderCreator.createFolder(createdFolder.getPath());
+            contentFileService.save(createdFolder);
+            rootFolderService.saveRootFolder(rootFolder);
+        }
+        return fileMapper.mapContentFileToDirectoryDto(createdFolder);
     }
 }
