@@ -22,4 +22,11 @@ public class ContentFileService {
             throw new ServiceException("The file or folder does not exist");
         });
     }
+
+    public ContentFileModel getFileByUuid(String uuid) {
+        return contentFileRepository.getContentFileModelByUuid(uuid).
+                orElseThrow(() -> {
+                    throw new ServiceException(MessageFormat.format("File with uuid {0} not found", uuid));
+                });
+    }
 }
