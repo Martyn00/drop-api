@@ -8,6 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface ContentFileRepository extends JpaRepository<ContentFileModel, Long> {
+    Optional<ContentFileModel> getContentFileModelByUuid(String uuid);
 
     Optional<ContentFileModel> findContentFileModelByUuid(String uuid);
 }

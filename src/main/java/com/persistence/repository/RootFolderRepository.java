@@ -13,5 +13,6 @@ public interface RootFolderRepository extends JpaRepository<RootFolderModel, Lon
 
     Optional<List<RootFolderModel>> findAllByFolderCreator(UserModel folderCreator);
 
-    Optional<RootFolderModel> findRootFolderModelByUuid(String uuid);
+    Optional<RootFolderModel> findRootFolderModelByUuid(String Uuid);
+
 }
