@@ -2,11 +2,20 @@ package com.controller;
 
 import com.controller.dto.ContentDto;
 import com.controller.dto.DirectoriesDto;
+import com.facade.FileFacade;
 import com.facade.FolderFacade;
 import lombok.AllArgsConstructor;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
 
 @RestController
 @RequestMapping(value = "/folders")
@@ -14,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 public class FolderController {
 
     private final FolderFacade folderFacade;
+
+    private final FileFacade fileFacade;
 
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<DirectoriesDto> getAllDirectories(@PathVariable String uuid) {
@@ -29,5 +40,19 @@ public class FolderController {
     @GetMapping("/content/{folderUuid}")
     public ResponseEntity<ContentDto> getAllContent(@PathVariable String folderUuid) {
         return new ResponseEntity<>(folderFacade.getAllFiles(folderUuid), HttpStatus.OK);
+    }
+
+    @PostMapping("/file-upload/{parentUuid}")
+    public ResponseEntity<String> uploadFile(HttpServletRequest request, @PathVariable String parentUuid) throws IOException, FileUploadException {
+        ServletFileUpload upload = new ServletFileUpload();
+        FileItemIterator iterStream = upload.getItemIterator(request);
+        while (iterStream.hasNext()) {
+            FileItemStream item = iterStream.next();
+            InputStream stream = item.openStream();
+            if (!item.isFormField()) {
+                fileFacade.uploadFile(stream, item.getName(), parentUuid);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

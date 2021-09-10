@@ -16,7 +16,7 @@ public class RootFolderService {
     private final RootFolderRepository rootFolderRepository;
 
     public RootFolderModel saveRootFolder(RootFolderModel rootFolderModel) {
-        rootFolderModel.setFileName(UUID.randomUUID().toString());
+        rootFolderModel.setFileName(rootFolderModel.getFileName());
         return rootFolderRepository.save(rootFolderModel);
     }
 
