@@ -17,38 +17,31 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
 public class FolderFacade {
-    private RootFolderService rootFolderService;
+    public static final String SLASH = "/";
+    private final RootFolderService rootFolderService;
 
-    private ContentFileService contentFileService;
+    private final ContentFileService contentFileService;
 
-    private FileMapper fileMapper;
+    private final FileMapper fileMapper;
 
-    private UserService userService;
+    private final UserService userService;
 
-    private FileTypeService fileTypeService;
+    private final FileTypeService fileTypeService;
 
-    private FolderCreator folderCreator;
+    private final FolderCreator folderCreator;
 
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
     public DirectoriesDto getDirectories(String uuid) {
         List<RootFolderModel> rootFolders = getRootFolders(uuid);
         DirectoriesDto directoriesDto = fileMapper.mapRootFolders(rootFolders);
         return directoriesDto;
-    }
-
-    private List<RootFolderModel> getRootFolders(String uuid) {
-        UserModel userModel = userService.getUserByUuid(uuid);
-        return rootFolderService.getAllRootFoldersByUserUuid(userModel);
     }
 
     public ContentDto getAllFiles(String uuid) {
@@ -77,51 +70,6 @@ public class FolderFacade {
         return new ContentDto(contentFileParentDto, contentFileDtos);
     }
 
-
-    public void createSalut(String uuid) {
-        FileTypeModel fileTypeModel = new FileTypeModel();
-        fileTypeModel.setTypeName("directory");
-        fileTypeModel.setIsActive(true);
-        fileTypeService.save(fileTypeModel);
-        UserModel userModel = userService.getUserByUuid(uuid);
-        ContentFileModel contentFileModel = new ContentFileModel();
-        contentFileModel.setFileName("salut");
-        contentFileModel.setUuid(UUID.randomUUID().toString());
-        contentFileModel.setFileCreator(userModel);
-        contentFileModel.setAddedDate(ZonedDateTime.now());
-        contentFileModel.setLastModifiedDate(ZonedDateTime.now());
-        contentFileModel.setPath("/marian24/private/salut");
-        RootFolderModel rootFolderModel = rootFolderService.getAllRootFoldersByUserUuid(userModel).get(0);
-        contentFileModel.setRootFolder(rootFolderModel);
-        contentFileModel.setFileTypeModel(fileTypeModel);
-        contentFileModel = contentFileService.save(contentFileModel);
-        List<ContentFileModel> contentFileModels = new ArrayList<>();
-        contentFileModels.add(contentFileModel);
-        rootFolderModel.setFiles(contentFileModels);
-        rootFolderService.saveRootFolder(rootFolderModel);
-        createServusInSalut(uuid, fileTypeModel, contentFileModel);
-    }
-
-    private void createServusInSalut(String uuid, FileTypeModel fileTypeModel, ContentFileModel contentFileModelParent) {
-        UserModel userModel = userService.getUserByUuid(uuid);
-        ContentFileModel contentFileModel = new ContentFileModel();
-        contentFileModel.setFileName("servus");
-        contentFileModel.setUuid(UUID.randomUUID().toString());
-        contentFileModel.setFileCreator(userModel);
-        contentFileModel.setAddedDate(ZonedDateTime.now());
-        contentFileModel.setLastModifiedDate(ZonedDateTime.now());
-        contentFileModel.setParentFolder(contentFileModelParent);
-        contentFileModel.setPath("/marian24/private/salut/servus");
-        RootFolderModel rootFolderModel = rootFolderService.getAllRootFoldersByUserUuid(userModel).get(0);
-        contentFileModel.setRootFolder(rootFolderModel);
-        contentFileModel.setFileTypeModel(fileTypeModel);
-        List<ContentFileModel> contentFileModels = new ArrayList<>();
-        contentFileModels.add(contentFileModel);
-        contentFileModelParent.setSubFiles(contentFileModels);
-        contentFileService.save(contentFileModel);
-        contentFileService.save(contentFileModelParent);
-    }
-
     public DirectoryDto createFolder(CreateFolderDto createFolderDto, String username) {
         ContentFileModel parentFolder;
         UserModel creator = userService.findUserByUsername(username);
@@ -137,7 +85,7 @@ public class FolderFacade {
         try {
             parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
             createdFolder.setParentFolder(parentFolder);
-            createdFolder.setPath(parentFolder.getPath() + "/" + createFolderDto.getFolderName());
+            createdFolder.setPath(parentFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(parentFolder.getRootFolder());
             parentFolder.getSubFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
@@ -145,7 +93,7 @@ public class FolderFacade {
             contentFileService.save(parentFolder);
         } catch (ServiceException ex) {
             RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
-            createdFolder.setPath(rootFolder.getPath() + "/" + createFolderDto.getFolderName());
+            createdFolder.setPath(rootFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(rootFolder);
             createdFolder.setParentFolder(null);
             rootFolder.getFiles().add(createdFolder);
@@ -154,5 +102,54 @@ public class FolderFacade {
             rootFolderService.saveRootFolder(rootFolder);
         }
         return fileMapper.mapContentFileToDirectoryDto(createdFolder);
+    }
+
+    public DirectoryDto renameFolder(RenameFolderDto renameFolderDto) {
+        ContentFileModel folderToRename = contentFileService.findContentFileModelByUuid(renameFolderDto.getFolderId());
+        folderToRename.setFileName(renameFolderDto.getFolderName());
+        //set subfolders path
+        String oldPath = folderToRename.getPath();
+        String[] path = oldPath.split(SLASH);
+        renamePaths(folderToRename.getSubFiles(), renameFolderDto.getFolderName(), path.length - 1);
+
+        //set folder path
+        StringBuilder newPath = createNewPath(path, path.length - 1, renameFolderDto.getFolderName());
+        folderToRename.setPath(newPath.toString());
+        folderCreator.renameFolder(oldPath, newPath.toString());
+        folderToRename.setLastModifiedDate(ZonedDateTime.now());
+        contentFileService.save(folderToRename);
+        return fileMapper.mapContentFileToDirectoryDto(folderToRename);
+    }
+
+    public void renamePaths(List<ContentFileModel> contentFileModels, String name, int index){
+        contentFileModels.forEach(contentFileModel ->
+        {
+            String[] pathToRename = contentFileModel.getPath().split(SLASH);
+            StringBuilder stringBuilder = createNewPath(pathToRename, index, name);
+            contentFileModel.setPath(stringBuilder.toString());
+            renamePaths(contentFileModel.getSubFiles(), name, index);
+        });
+
+        contentFileModels.forEach(c -> {
+            System.out.println(c.getPath());
+            printPaths(c.getSubFiles());
+        });
+    }
+
+    private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
+        splitPath[folderToRenameIndex] = folderName;
+        StringBuilder newPath = new StringBuilder();
+        Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
+        newPath.deleteCharAt(newPath.length() - 1);
+        return newPath;
+    }
+
+    private List<RootFolderModel> getRootFolders(String uuid) {
+        UserModel userModel = userService.getUserByUuid(uuid);
+        return rootFolderService.getAllRootFoldersByUserUuid(userModel);
+    }
+
+    public void printPaths(List<ContentFileModel> contentFileModels){
+        contentFileModels.forEach(c -> System.out.println(c.getPath()));
     }
 }

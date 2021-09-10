@@ -1,9 +1,6 @@
 package com.controller;
 
-import com.controller.dto.ContentDto;
-import com.controller.dto.CreateFolderDto;
-import com.controller.dto.DirectoriesDto;
-import com.controller.dto.DirectoryDto;
+import com.controller.dto.*;
 import com.facade.FolderFacade;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,12 +20,6 @@ public class FolderController {
         return new ResponseEntity<>(folderFacade.getDirectories(uuid), HttpStatus.OK);
     }
 
-    @PostMapping(value = "/salut/{uuid}")
-    public ResponseEntity<DirectoriesDto> createSalut(@PathVariable String uuid) {
-        folderFacade.createSalut(uuid);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
     @GetMapping("/content/{folderUuid}")
     public ResponseEntity<ContentDto> getAllContent(@PathVariable String folderUuid) {
         return new ResponseEntity<>(folderFacade.getAllFiles(folderUuid), HttpStatus.OK);
@@ -39,5 +30,10 @@ public class FolderController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return new ResponseEntity<>(folderFacade.
                 createFolder(createFolderDto, username), HttpStatus.CREATED);
+    }
+
+    @PutMapping
+    public ResponseEntity<DirectoryDto> renameDirectory(@RequestBody RenameFolderDto renameFolderDto){
+        return new ResponseEntity<>(folderFacade.renameFolder(renameFolderDto), HttpStatus.OK);
     }
 }
