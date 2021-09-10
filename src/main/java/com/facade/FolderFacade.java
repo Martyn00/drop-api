@@ -23,29 +23,25 @@ import java.util.stream.Collectors;
 @Component
 @AllArgsConstructor
 public class FolderFacade {
-    private RootFolderService rootFolderService;
+    public static final String SLASH = "/";
+    private final RootFolderService rootFolderService;
 
-    private ContentFileService contentFileService;
+    private final ContentFileService contentFileService;
 
-    private FileMapper fileMapper;
+    private final FileMapper fileMapper;
 
-    private UserService userService;
+    private final UserService userService;
 
-    private FileTypeService fileTypeService;
+    private final FileTypeService fileTypeService;
 
-    private FolderCreator folderCreator;
+    private final FolderCreator folderCreator;
 
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
     public DirectoriesDto getDirectories(String uuid) {
         List<RootFolderModel> rootFolders = getRootFolders(uuid);
         DirectoriesDto directoriesDto = fileMapper.mapRootFolders(rootFolders);
         return directoriesDto;
-    }
-
-    private List<RootFolderModel> getRootFolders(String uuid) {
-        UserModel userModel = userService.getUserByUuid(uuid);
-        return rootFolderService.getAllRootFoldersByUserUuid(userModel);
     }
 
     public ContentDto getAllFiles(String uuid) {
@@ -89,7 +85,7 @@ public class FolderFacade {
         try {
             parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
             createdFolder.setParentFolder(parentFolder);
-            createdFolder.setPath(parentFolder.getPath() + "/" + createFolderDto.getFolderName());
+            createdFolder.setPath(parentFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(parentFolder.getRootFolder());
             parentFolder.getSubFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
@@ -97,7 +93,7 @@ public class FolderFacade {
             contentFileService.save(parentFolder);
         } catch (ServiceException ex) {
             RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
-            createdFolder.setPath(rootFolder.getPath() + "/" + createFolderDto.getFolderName());
+            createdFolder.setPath(rootFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(rootFolder);
             createdFolder.setParentFolder(null);
             rootFolder.getFiles().add(createdFolder);
@@ -110,19 +106,17 @@ public class FolderFacade {
 
     public DirectoryDto renameFolder(RenameFolderDto renameFolderDto) {
         ContentFileModel folderToRename = contentFileService.findContentFileModelByUuid(renameFolderDto.getFolderId());
-        //set subfolders path
         folderToRename.setFileName(renameFolderDto.getFolderName());
-        String[] path = folderToRename.getPath().split("/");
+        //set subfolders path
+        String oldPath = folderToRename.getPath();
+        String[] path = oldPath.split(SLASH);
         renamePaths(folderToRename.getSubFiles(), renameFolderDto.getFolderName(), path.length - 1);
 
         //set folder path
-        path[path.length - 1] = renameFolderDto.getFolderName();
-        StringBuilder stringBuilder = new StringBuilder();
-        Arrays.stream(path).forEach(s -> stringBuilder.append(s).append("/"));
-        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-        folderToRename.setPath(stringBuilder.toString());
-
-        System.out.println("RENAMED FOLDER PATH : " + folderToRename.getPath());
+        StringBuilder newPath = createNewPath(path, path.length - 1, renameFolderDto.getFolderName());
+        folderToRename.setPath(newPath.toString());
+        folderCreator.renameFolder(oldPath, newPath.toString());
+        folderToRename.setLastModifiedDate(ZonedDateTime.now());
         contentFileService.save(folderToRename);
         return fileMapper.mapContentFileToDirectoryDto(folderToRename);
     }
@@ -130,20 +124,29 @@ public class FolderFacade {
     public void renamePaths(List<ContentFileModel> contentFileModels, String name, int index){
         contentFileModels.forEach(contentFileModel ->
         {
-            String[] pathToRename = contentFileModel.getPath().split("/");
-            pathToRename[index] = name;
-            StringBuilder stringBuilder = new StringBuilder();
-            Arrays.stream(pathToRename).forEach(s -> stringBuilder.append(s).append("/"));
-            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+            String[] pathToRename = contentFileModel.getPath().split(SLASH);
+            StringBuilder stringBuilder = createNewPath(pathToRename, index, name);
             contentFileModel.setPath(stringBuilder.toString());
             renamePaths(contentFileModel.getSubFiles(), name, index);
         });
 
-        System.out.println("PRINTING SUBFOLDERS");
         contentFileModels.forEach(c -> {
             System.out.println(c.getPath());
             printPaths(c.getSubFiles());
         });
+    }
+
+    private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
+        splitPath[folderToRenameIndex] = folderName;
+        StringBuilder newPath = new StringBuilder();
+        Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
+        newPath.deleteCharAt(newPath.length() - 1);
+        return newPath;
+    }
+
+    private List<RootFolderModel> getRootFolders(String uuid) {
+        UserModel userModel = userService.getUserByUuid(uuid);
+        return rootFolderService.getAllRootFoldersByUserUuid(userModel);
     }
 
     public void printPaths(List<ContentFileModel> contentFileModels){
