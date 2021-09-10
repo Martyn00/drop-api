@@ -6,6 +6,8 @@ import com.persistence.repository.ContentFileRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.text.MessageFormat;
+
 @Service
 @AllArgsConstructor
 public class ContentFileService {
@@ -19,5 +21,12 @@ public class ContentFileService {
         return contentFileRepository.findContentFileModelByUuid(uuid).orElseThrow(() -> {
             throw new ServiceException("The file or folder does not exist");
         });
+    }
+
+    public ContentFileModel getFileByUuid(String uuid) {
+        return contentFileRepository.getContentFileModelByUuid(uuid).
+                orElseThrow(() -> {
+                    throw new ServiceException(MessageFormat.format("File with uuid {0} not found", uuid));
+                });
     }
 }

@@ -37,7 +37,7 @@ public class FileMapper {
         return directoryDto;
     }
 
-    private DirectoryDto mapContentFileToDirectoryDto(ContentFileModel contentFile) {
+    public DirectoryDto mapContentFileToDirectoryDto(ContentFileModel contentFile) {
         DirectoryDto directoryDto = new DirectoryDto();
         directoryDto.setFileName(contentFile.getFileName());
         directoryDto.setUuid(contentFile.getUuid());

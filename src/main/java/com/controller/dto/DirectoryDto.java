@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 @Getter
 public class DirectoryDto {
-    @JsonProperty(value = "id")
+    @JsonProperty(value = "uuid")
     private String uuid;
 
     @JsonProperty(value = "fileName")

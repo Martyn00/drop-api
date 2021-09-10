@@ -27,4 +27,11 @@ public class FileTypeService {
     public List<FileTypeModel> getAllFileTypes() {
         return fileTypeRepository.findAll();
     }
+
+    public FileTypeModel getFileTypeByName(String fileType) {
+        return fileTypeRepository.findFileTypeModelByTypeName(fileType).orElseThrow(() ->
+        {
+            throw new ServiceException("File type not found");
+        });
+    }
 }

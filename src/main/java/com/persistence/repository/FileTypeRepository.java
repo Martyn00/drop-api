@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface FileTypeRepository extends JpaRepository<FileTypeModel, Long> {
     Optional<FileTypeModel> findByTypeName(String typeName);
+    Optional<FileTypeModel> findFileTypeModelByTypeName(String typeName);
 }
