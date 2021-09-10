@@ -3,8 +3,8 @@ package com.controller;
 import com.controller.dto.ContentDto;
 import com.controller.dto.CreateFolderDto;
 import com.controller.dto.DirectoriesDto;
-import com.facade.FileFacade;
 import com.controller.dto.DirectoryDto;
+import com.facade.FileFacade;
 import com.facade.FolderFacade;
 import lombok.AllArgsConstructor;
 import org.apache.commons.fileupload.FileItemIterator;
@@ -52,7 +52,7 @@ public class FolderController {
                 createFolder(createFolderDto, username), HttpStatus.CREATED);
     }
 
-    @PostMapping("/file-upload/{parentUuid}")
+    @PostMapping(value = "/file-upload/{parentUuid}", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadFile(HttpServletRequest request, @PathVariable String parentUuid) throws IOException, FileUploadException {
         ServletFileUpload upload = new ServletFileUpload();
         FileItemIterator iterStream = upload.getItemIterator(request);
