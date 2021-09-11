@@ -2,7 +2,7 @@ package com.facade;
 
 import com.exception.FolderException;
 import com.exception.ServiceException;
-import com.foldermanipulation.FileUploader;
+import com.foldermanipulation.FileService;
 import com.persistence.model.ContentFileModel;
 import com.persistence.model.FileTypeModel;
 import com.persistence.model.RootFolderModel;
@@ -11,7 +11,9 @@ import com.service.FileTypeService;
 import com.service.RootFolderService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -19,13 +21,14 @@ import java.util.UUID;
 @Component
 @AllArgsConstructor
 public class FileFacade {
-    private final FileUploader fileUploader;
+    private final FileService fileUploader;
     private final ContentFileService contentFileService;
     private final RootFolderService rootFolderService;
     private final FileTypeService fileTypeService;
 
-    public void uploadFile(InputStream inputStream, String fileName, String parentUuid) {
+    public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
         ContentFileModel contentFileModel = new ContentFileModel();
+        InputStream inputStream = getInputStream(file);
         int size = 0;
         try {
             RootFolderModel parentDirectory = rootFolderService.getRootFolderByUuid(parentUuid);
@@ -43,14 +46,26 @@ public class FileFacade {
             contentFileModel.setFileCreator(parentDirectory.getFileCreator());
             contentFileModel.setPath(parentDirectory.getPath() + "/" + fileName);
         }
+        setData(fileName, contentFileModel, size);
+        updateParents(contentFileModel);
+    }
+
+    private void setData(String fileName, ContentFileModel contentFileModel, double size) {
         contentFileModel.setUuid(UUID.randomUUID().toString());
         contentFileModel.setAddedDate(ZonedDateTime.now());
         contentFileModel.setLastModifiedDate(ZonedDateTime.now());
-        contentFileModel.setSize((double) size);
+        contentFileModel.setSize(size);
         contentFileModel.setFileName(fileName);
         contentFileModel.setFileTypeModel(getFileType("text"));
         contentFileService.save(contentFileModel);
-        updateParents(contentFileModel);
+    }
+
+    private InputStream getInputStream(MultipartFile file) {
+        try {
+            return file.getInputStream();
+        } catch (IOException e) {
+            throw new FolderException("Could not upload file");
+        }
     }
 
     private void checkUniqueName(ContentFileModel parentDirectory, String fileName) {
@@ -72,10 +87,11 @@ public class FileFacade {
             ContentFileModel conteFileParent = contentFileModel.getParentFolder();
             conteFileParent.getSubFiles().add(contentFileModel);
             contentFileService.save(conteFileParent);
+        } else {
+            RootFolderModel rootFolderModel = contentFileModel.getRootFolder();
+            rootFolderModel.getFiles().add(contentFileModel);
+            rootFolderService.saveRootFolder(rootFolderModel);
         }
-        RootFolderModel rootFolderModel = contentFileModel.getRootFolder();
-        rootFolderModel.getFiles().add(contentFileModel);
-        rootFolderService.saveRootFolder(rootFolderModel);
     }
 
 
@@ -83,7 +99,6 @@ public class FileFacade {
         FileTypeModel fileTypeModel = fileTypeService.getAllFileTypes().stream().
                 filter(fileType -> fileType.getTypeName()
                         .equals(fileTypeName)).findFirst().get();
-//        fileTypeService.save(fileTypeModel);
         return fileTypeModel;
     }
 }

@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 @Component
-public class FileUploader {
+public class FileService {
     public int uploadFile(InputStream in, String path) {
         path = "../server" + path;
         try {

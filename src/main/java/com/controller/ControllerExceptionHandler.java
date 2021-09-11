@@ -21,22 +21,22 @@ public class ControllerExceptionHandler {
     }
 
     @ExceptionHandler(FolderException.class)
-    public ResponseEntity<Object> handleNotFoundException(FolderException exception) {
+    public ResponseEntity<Object> handleFolderException(FolderException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.NOT_FOUND, Collections.emptyList());
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<Object> handleNotFoundException(InvalidCredentialsException exception) {
+    public ResponseEntity<Object> handleInvalidCredentials(InvalidCredentialsException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.NOT_FOUND, Collections.emptyList());
     }
 
     @ExceptionHandler(ServiceException.class)
-    public ResponseEntity<Object> handleNotFoundException(ServiceException exception) {
+    public ResponseEntity<Object> handleServiceException(ServiceException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.NOT_FOUND, Collections.emptyList());
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Object> handleNotFoundException(UserNotFoundException exception) {
+    public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.NOT_FOUND, Collections.emptyList());
     }
 
