@@ -12,4 +12,7 @@ import java.util.Optional;
 public interface RootFolderRepository extends JpaRepository<RootFolderModel, Long> {
 
     Optional<List<RootFolderModel>> findAllByFolderCreator(UserModel folderCreator);
+
+    Optional<RootFolderModel> findRootFolderModelByUuid(String Uuid);
+
 }

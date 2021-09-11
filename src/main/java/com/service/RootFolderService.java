@@ -16,7 +16,7 @@ public class RootFolderService {
     private final RootFolderRepository rootFolderRepository;
 
     public RootFolderModel saveRootFolder(RootFolderModel rootFolderModel) {
-        rootFolderModel.setFolderName(UUID.randomUUID().toString());
+        rootFolderModel.setFileName(rootFolderModel.getFileName());
         return rootFolderRepository.save(rootFolderModel);
     }
 
@@ -27,6 +27,12 @@ public class RootFolderService {
 
     public List<RootFolderModel> getAllRootFoldersByUserUuid(UserModel folderCreator) {
         return rootFolderRepository.findAllByFolderCreator(folderCreator).orElseThrow(() -> {
+            throw new ServiceException("The folder does not exist");
+        });
+    }
+
+    public RootFolderModel getRootFolderByUuid(String uuid) {
+        return rootFolderRepository.findRootFolderModelByUuid(uuid).orElseThrow(() -> {
             throw new ServiceException("The folder does not exist");
         });
     }

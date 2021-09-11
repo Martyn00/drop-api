@@ -22,7 +22,7 @@ public class RootFolderModel {
     private String uuid;
 
     @Column(name = "folderName")
-    private String folderName;
+    private String fileName;
 
     @Column(name = "path")
     private String path;

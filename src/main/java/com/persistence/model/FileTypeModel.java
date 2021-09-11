@@ -20,7 +20,7 @@ public class FileTypeModel {
     @Column(name = "uuid")
     private String uuid;
 
-    @Column(name = "typeName")
+    @Column(name = "typeName", unique = true)
     private String typeName;
 
     @Column(name = "is_active")

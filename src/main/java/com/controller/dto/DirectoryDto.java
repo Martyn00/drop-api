@@ -17,8 +17,11 @@ public class DirectoryDto {
     @JsonProperty(value = "fileName")
     private String fileName;
 
-    @JsonProperty(value = "parentUuid")
+    @JsonProperty(value = "parentId")
     private String parentUuid;
+
+    @JsonProperty(value = "path")
+    private String path;
 
     @JsonProperty(value = "subfolders")
     private List<DirectoryDto> subfolders;
