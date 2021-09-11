@@ -29,4 +29,8 @@ public class ContentFileService {
                     throw new ServiceException(MessageFormat.format("File with uuid {0} not found", uuid));
                 });
     }
+
+    public void deleteFileByUuid(String uuid) {
+        contentFileRepository.deleteByUuid(uuid);
+    }
 }

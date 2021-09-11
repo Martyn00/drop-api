@@ -136,6 +136,21 @@ public class FolderFacade {
         });
     }
 
+    public void deleteFileByUuid(String uuid) {
+        ContentFileModel fileToDelete = contentFileService.findContentFileModelByUuid(uuid);
+        ContentFileModel parent = fileToDelete.getParentFolder();
+        if(parent != null){
+            parent.getSubFiles().remove(fileToDelete);
+            contentFileService.save(parent);
+        } else {
+            RootFolderModel rootFolderModel = fileToDelete.getRootFolder();
+            rootFolderModel.getFiles().remove(fileToDelete);
+            rootFolderService.saveRootFolder(rootFolderModel);
+        }
+        contentFileService.deleteFileByUuid(uuid);
+        folderCreator.deleteFolder(fileToDelete.getPath());
+    }
+
     private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
         splitPath[folderToRenameIndex] = folderName;
         StringBuilder newPath = new StringBuilder();

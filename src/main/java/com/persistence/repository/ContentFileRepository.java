@@ -18,4 +18,7 @@ public interface ContentFileRepository extends JpaRepository<ContentFileModel, L
     ContentFileModel save(ContentFileModel contentFileModel);
 
     Optional<ContentFileModel> findContentFileModelByUuid(String uuid);
+
+    @Transactional(rollbackOn = FolderException.class)
+    void deleteByUuid(String uuid);
 }
