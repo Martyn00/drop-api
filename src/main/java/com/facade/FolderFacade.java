@@ -167,4 +167,8 @@ public class FolderFacade {
     public void printPaths(List<ContentFileModel> contentFileModels){
         contentFileModels.forEach(c -> System.out.println(c.getPath()));
     }
+
+    public Boolean checkFileExistsByName(String fileName) {
+        return contentFileService.checkFileExistsByName(fileName);
+    }
 }

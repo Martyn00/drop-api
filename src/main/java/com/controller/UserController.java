@@ -6,10 +6,7 @@ import com.facade.UserFacade;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -24,6 +21,16 @@ public class UserController {
     public ResponseEntity<DisplayUserDto> registerUser(@RequestBody @Valid UserDto userDto) {
         DisplayUserDto displayUserDto = userFacade.createUser(userDto);
         return new ResponseEntity<>(displayUserDto, HttpStatus.CREATED);
+    }
+
+    @GetMapping(path = "/email-exists/{email}")
+    public ResponseEntity<Boolean> checkUserExistsByEmail(@PathVariable String email){
+        return new ResponseEntity<>(userFacade.checkUserExistsByEmail(email), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/username-exists/{username}")
+    public ResponseEntity<Boolean> checkUserExistsByUsername(@PathVariable String username){
+        return new ResponseEntity<>(userFacade.checkUserExistsByUsername(username), HttpStatus.OK);
     }
 
 }

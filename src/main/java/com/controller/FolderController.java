@@ -54,4 +54,9 @@ public class FolderController {
         folderFacade.deleteFileByUuid(uuid);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @GetMapping(value = "/exists/{folderName}")
+    public ResponseEntity<Boolean> checkFileExistsByName(@PathVariable String folderName){
+        return new ResponseEntity<>(folderFacade.checkFileExistsByName(folderName), HttpStatus.OK);
+    }
 }

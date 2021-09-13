@@ -21,4 +21,6 @@ public interface ContentFileRepository extends JpaRepository<ContentFileModel, L
 
     @Transactional(rollbackOn = FolderException.class)
     void deleteByUuid(String uuid);
+
+    boolean existsByFileName(String fileName);
 }
