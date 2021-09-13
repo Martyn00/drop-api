@@ -33,4 +33,8 @@ public class ContentFileService {
     public void deleteFileByUuid(String uuid) {
         contentFileRepository.deleteByUuid(uuid);
     }
+
+    public Boolean checkFileExistsByName(String fileName){
+        return contentFileRepository.existsByFileName(fileName);
+    }
 }
