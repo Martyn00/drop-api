@@ -48,4 +48,10 @@ public class FolderController {
     public ResponseEntity<DirectoryDto> renameDirectory(@RequestBody RenameFolderDto renameFolderDto){
         return new ResponseEntity<>(folderFacade.renameFolder(renameFolderDto), HttpStatus.OK);
     }
+
+    @DeleteMapping(value = "/{uuid}")
+    public ResponseEntity<Object> deleteFile(@PathVariable String uuid){
+        folderFacade.deleteFileByUuid(uuid);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
