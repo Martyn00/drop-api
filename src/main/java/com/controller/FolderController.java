@@ -15,6 +15,7 @@ import java.util.Arrays;
 @RestController
 @RequestMapping(value = "/folders")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class FolderController {
 
     private final FolderFacade folderFacade;
