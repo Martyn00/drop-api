@@ -47,4 +47,12 @@ public class UserFacade {
             throw new InvalidCredentialsException(INVALID_USER_OR_PASSWORD);
         }
     }
+
+    public Boolean checkUserExistsByEmail(String email) {
+        return userService.checkUserExistsByEmail(email);
+    }
+
+    public Boolean checkUserExistsByUsername(String username) {
+        return userService.checkUserExistsByUsername(username);
+    }
 }

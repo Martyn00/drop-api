@@ -3,6 +3,7 @@ package com.foldermanipulation;
 import com.exception.FolderException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,14 @@ public class FolderCreator {
             Files.move(Path.of(BASIC_PATH + oldPath), Path.of(BASIC_PATH + newPath));
         } catch (IOException e) {
             throw new FolderException(MessageFormat.format("Could not rename folder at path {0} ", oldPath));
+        }
+    }
+
+     public void deleteFolder(String path){
+        try {
+            FileSystemUtils.deleteRecursively(Path.of(BASIC_PATH + path));
+        } catch (IOException e) {
+            throw new FolderException(MessageFormat.format("Could not delete folder at path {0}", path));
         }
     }
 

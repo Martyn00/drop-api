@@ -45,4 +45,11 @@ public class UserService {
         return encoder.matches(rawPassword, encryptedPassword);
     }
 
+    public Boolean checkUserExistsByEmail(String email){
+        return userRepository.existsByEmail(email);
+    }
+
+    public Boolean checkUserExistsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
 }

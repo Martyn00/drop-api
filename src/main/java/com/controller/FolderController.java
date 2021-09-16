@@ -15,6 +15,7 @@ import java.util.Arrays;
 @RestController
 @RequestMapping(value = "/folders")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class FolderController {
 
     private final FolderFacade folderFacade;
@@ -47,5 +48,16 @@ public class FolderController {
     @PutMapping
     public ResponseEntity<DirectoryDto> renameDirectory(@RequestBody RenameFolderDto renameFolderDto){
         return new ResponseEntity<>(folderFacade.renameFolder(renameFolderDto), HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{uuid}")
+    public ResponseEntity<Object> deleteFile(@PathVariable String uuid){
+        folderFacade.deleteFileByUuid(uuid);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping(value = "/exists/{folderName}")
+    public ResponseEntity<Boolean> checkFileExistsByName(@PathVariable String folderName){
+        return new ResponseEntity<>(folderFacade.checkFileExistsByName(folderName), HttpStatus.OK);
     }
 }
