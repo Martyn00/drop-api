@@ -17,7 +17,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -121,7 +124,7 @@ public class FolderFacade {
         return fileMapper.mapContentFileToDirectoryDto(folderToRename);
     }
 
-    public void renamePaths(List<ContentFileModel> contentFileModels, String name, int index){
+    public void renamePaths(List<ContentFileModel> contentFileModels, String name, int index) {
         contentFileModels.forEach(contentFileModel ->
         {
             String[] pathToRename = contentFileModel.getPath().split(SLASH);
@@ -139,7 +142,7 @@ public class FolderFacade {
     public void deleteFileByUuid(String uuid) {
         ContentFileModel fileToDelete = contentFileService.findContentFileModelByUuid(uuid);
         ContentFileModel parent = fileToDelete.getParentFolder();
-        if(parent != null){
+        if (parent != null) {
             parent.getSubFiles().remove(fileToDelete);
             contentFileService.save(parent);
         } else {
@@ -164,7 +167,7 @@ public class FolderFacade {
         return rootFolderService.getAllRootFoldersByUserUuid(userModel);
     }
 
-    public void printPaths(List<ContentFileModel> contentFileModels){
+    public void printPaths(List<ContentFileModel> contentFileModels) {
         contentFileModels.forEach(c -> System.out.println(c.getPath()));
     }
 
