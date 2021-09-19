@@ -41,6 +41,7 @@ public class FolderController {
 
     @PostMapping(value = "/file-upload/{parentUuid}", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile[] files, @PathVariable String parentUuid) {
+        System.out.println(parentUuid);
         Arrays.stream(files).forEach(file -> fileFacade.uploadFile(file, file.getOriginalFilename(), parentUuid));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
