@@ -36,4 +36,6 @@ public class RootFolderModel {
     @OneToMany(fetch = FetchType.EAGER)
     private List<ContentFileModel> files;
 
+    @OneToMany(cascade = CascadeType.PERSIST)
+    private List<RootFolderAccessModel> rootFolderAccessModel;
 }
