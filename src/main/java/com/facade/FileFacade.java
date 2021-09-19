@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZonedDateTime;
@@ -48,6 +49,12 @@ public class FileFacade {
         }
         setData(fileName, contentFileModel, size);
         updateParents(contentFileModel);
+    }
+
+
+    public File getFile(String uuid){
+        ContentFileModel fileToDownload = contentFileService.getFileByUuid(uuid);
+        return new File("../server/" + fileToDownload.getPath());
     }
 
     private void setData(String fileName, ContentFileModel contentFileModel, double size) {
