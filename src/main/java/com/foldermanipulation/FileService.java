@@ -1,7 +1,7 @@
 package com.foldermanipulation;
 
 import com.exception.FolderException;
-import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.FileOutputStream;

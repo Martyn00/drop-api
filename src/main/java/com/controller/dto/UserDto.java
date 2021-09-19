@@ -2,16 +2,14 @@ package com.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import lombok.experimental.FieldNameConstants;
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@FieldNameConstants
 @EqualsAndHashCode
 @ToString
 public class UserDto {
