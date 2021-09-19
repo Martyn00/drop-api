@@ -5,12 +5,25 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Component
 public class RootFolderCreator {
     public static final String SLASH = "/";
     @Value("${user.files}")
     private String BASIC_PATH;
+
+    public void createServerDirectory(){
+        File workingFile = new File(System.getProperty("user.dir"));
+        File aboveWorking = new File(workingFile.getParent());
+        try {
+            Files.createDirectories(Paths.get(aboveWorking.getPath().concat("/server")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void createRootFolders(String username) {
         File usernameDirectory = new File(BASIC_PATH.concat(SLASH).concat(username));
