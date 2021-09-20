@@ -4,6 +4,7 @@ import com.controller.dto.*;
 import com.facade.FileFacade;
 import com.facade.FolderFacade;
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
@@ -21,8 +22,7 @@ import reactor.core.publisher.Flux;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.Files;
 import java.util.Arrays;
 
 @RestController
@@ -77,16 +77,21 @@ public class FolderController {
 
     @GetMapping(value = "/{fileUuid}/download", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @Transactional(timeout = 3000)
-    public void downloadFile(@PathVariable String fileUuid, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileUuid, HttpServletRequest request, HttpServletResponse response) throws IOException {
         File fileToDownload = fileFacade.getFile(fileUuid);
+        Resource resource = fileFacade.download(fileToDownload);
         System.out.println(fileToDownload.exists());
         WebClient webClient = WebClient.create(fileToDownload.toURI().toURL().toString());
         System.out.println(request.getRequestURL().toString());
 
-        Flux<DataBuffer> readFileToDownload = DataBufferUtils.read(fileToDownload.toPath(), new DefaultDataBufferFactory(), 2048);
+//        Flux<DataBuffer> readFileToDownload = DataBufferUtils.read(fileToDownload.toPath(), new DefaultDataBufferFactory(), 2048);
         String token = request.getHeader("Authorization").split(" ")[1];
         System.out.println(token);
-        readFileToDownload.subscribe(System.out::println);
+//        readFileToDownload.subscribe(System.out::println);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(resource.getFile().toPath()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
 //        return readFileToDownload;
 
 //        Flux<DataBuffer> dataBuffer = webClient
