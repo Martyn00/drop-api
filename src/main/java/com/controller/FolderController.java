@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 
 @RestController
 @RequestMapping(value = "/folders")
@@ -49,8 +50,8 @@ public class FolderController {
     }
 
     @PostMapping(value = "/file-upload/{parentUuid}", consumes = "multipart/form-data")
-    public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile files, @PathVariable String parentUuid) {
-        fileFacade.uploadFile(files, files.getOriginalFilename(), parentUuid);
+    public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile[] files, @PathVariable String parentUuid) {
+        Arrays.stream(files).forEach(file -> fileFacade.uploadFile(file, file.getOriginalFilename(), parentUuid));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
