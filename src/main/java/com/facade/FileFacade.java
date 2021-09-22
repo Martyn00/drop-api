@@ -10,7 +10,6 @@ import com.service.ContentFileService;
 import com.service.FileTypeService;
 import com.service.RootFolderService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
@@ -23,6 +22,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -40,25 +40,50 @@ public class FileFacade {
         try {
             RootFolderModel parentDirectory = rootFolderService.getRootFolderByUuid(parentUuid);
             checkUniqueName(parentDirectory, fileName);
-            size = fileUploader.uploadFile(inputStream, parentDirectory.getPath() + "/" + fileName);
+//            size = fileUploader.uploadFile(inputStream, parentDirectory.getPath() + "/" + fileName);
             contentFileModel.setFileCreator(parentDirectory.getFolderCreator());
             contentFileModel.setPath(parentDirectory.getPath() + "/" + fileName);
             contentFileModel.setRootFolder(parentDirectory);
         } catch (ServiceException ex) {
             ContentFileModel parentDirectory = contentFileService.findContentFileModelByUuid(parentUuid);
             checkUniqueName(parentDirectory, fileName);
-            size = fileUploader.uploadFile(inputStream, parentDirectory.getPath() + "/" + fileName);
+//            size = fileUploader.uploadFile(inputStream, parentDirectory.getPath() + "/" + fileName);
             contentFileModel.setRootFolder(parentDirectory.getRootFolder());
             contentFileModel.setParentFolder(parentDirectory);
             contentFileModel.setFileCreator(parentDirectory.getFileCreator());
             contentFileModel.setPath(parentDirectory.getPath() + "/" + fileName);
         }
-        setData(fileName, contentFileModel, size);
-        updateParents(contentFileModel);
+        updateParents(contentFileModel, fileName, parentUuid);
     }
 
+    private ContentFileModel setData(String fileName, ContentFileModel contentFileModel, double size) {
+        contentFileModel.setUuid(UUID.randomUUID().toString());
+        contentFileModel.setAddedDate(ZonedDateTime.now());
+        contentFileModel.setLastModifiedDate(ZonedDateTime.now());
+        contentFileModel.setSize(size);
+        contentFileModel.setFileName(fileName);
+        contentFileModel.setFileTypeModel(getFileType("text"));
+        return contentFileService.save(contentFileModel);
+    }
 
-    public File getFile(String uuid){
+    private void updateParents(ContentFileModel contentFileModel, String filename, String parentUuid) {
+        contentFileModel = setData(filename, contentFileModel, 0);
+        if (contentFileModel.getParentFolder() != null) {
+            ContentFileModel conteFileParent = contentFileService.getFileByUuid(contentFileModel.getParentFolder().getUuid());
+            conteFileParent.getSubFiles().add(contentFileModel);
+            contentFileService.save(conteFileParent);
+        } else {
+            RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(contentFileModel.getRootFolder().getUuid());
+            List<ContentFileModel> contentFileModelList = rootFolderModel.getFiles();
+            System.out.println(contentFileModelList);
+            contentFileModelList.add(contentFileModel);
+            System.out.println(contentFileModelList);
+            rootFolderModel.setFiles(contentFileModelList);
+            rootFolderService.saveRootFolder(rootFolderModel);
+        }
+    }
+
+    public File getFile(String uuid) {
         ContentFileModel fileToDownload = contentFileService.getFileByUuid(uuid);
         return new File("../server/" + fileToDownload.getPath());
     }
@@ -78,15 +103,6 @@ public class FileFacade {
         }
     }
 
-    private void setData(String fileName, ContentFileModel contentFileModel, double size) {
-        contentFileModel.setUuid(UUID.randomUUID().toString());
-        contentFileModel.setAddedDate(ZonedDateTime.now());
-        contentFileModel.setLastModifiedDate(ZonedDateTime.now());
-        contentFileModel.setSize(size);
-        contentFileModel.setFileName(fileName);
-        contentFileModel.setFileTypeModel(getFileType("text"));
-        contentFileService.save(contentFileModel);
-    }
 
     private InputStream getInputStream(MultipartFile file) {
         try {
@@ -107,18 +123,6 @@ public class FileFacade {
         long count = parentDirectory.getFiles().stream().filter(file -> file.getFileName().equals(fileName)).count();
         if (count != 0) {
             throw new FolderException("File already exists in that folder");
-        }
-    }
-
-    private void updateParents(ContentFileModel contentFileModel) {
-        if (contentFileModel.getParentFolder() != null) {
-            ContentFileModel conteFileParent = contentFileModel.getParentFolder();
-            conteFileParent.getSubFiles().add(contentFileModel);
-            contentFileService.save(conteFileParent);
-        } else {
-            RootFolderModel rootFolderModel = contentFileModel.getRootFolder();
-            rootFolderModel.getFiles().add(contentFileModel);
-            rootFolderService.saveRootFolder(rootFolderModel);
         }
     }
 

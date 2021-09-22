@@ -5,9 +5,6 @@ import com.facade.FileFacade;
 import com.facade.FolderFacade;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,13 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
 
 @RestController
 @RequestMapping(value = "/folders")
@@ -53,9 +49,8 @@ public class FolderController {
     }
 
     @PostMapping(value = "/file-upload/{parentUuid}", consumes = "multipart/form-data")
-    public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile[] files, @PathVariable String parentUuid) {
-        System.out.println(parentUuid);
-        Arrays.stream(files).forEach(file -> fileFacade.uploadFile(file, file.getOriginalFilename(), parentUuid));
+    public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile files, @PathVariable String parentUuid) {
+        fileFacade.uploadFile(files, files.getOriginalFilename(), parentUuid);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 

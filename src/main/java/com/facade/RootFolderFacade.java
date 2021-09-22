@@ -55,7 +55,7 @@ public class RootFolderFacade {
         rootFolderModel.setFileName(folderName);
         rootFolderModel.setShared(isShared);
         rootFolderModel.setPath(path);
-        rootFolderModel.setFiles(Collections.emptyList());
+        rootFolderModel.setFiles(new ArrayList<>());
         rootFolderModel.setRootFolderAccessModel(new ArrayList<>());
         return rootFolderModel;
     }
