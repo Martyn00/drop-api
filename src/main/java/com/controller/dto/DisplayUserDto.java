@@ -25,4 +25,7 @@ public class DisplayUserDto {
 
     @JsonProperty(value = "id")
     private String uuid;
+
+    @JsonProperty(value = "privateFolderId")
+    private String privateUuid;
 }

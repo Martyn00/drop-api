@@ -33,9 +33,9 @@ public class FileFacade {
     private final FileTypeService fileTypeService;
 
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
-        ContentFileModel contentFileModel = setBasicData(fileName, 0);
+        ContentFileModel contentFileModel = setBasicData(fileName, file.getSize());
         updateParents(contentFileModel, parentUuid);
-
+        fileUploader.uploadFile(getInputStream(file), contentFileModel.getPath());
     }
 
     private ContentFileModel setBasicData(String fileName, double size) {
@@ -52,6 +52,7 @@ public class FileFacade {
     private void updateParents(ContentFileModel contentFileModel, String parentUuid) {
         try {
             var parentFolder = contentFileService.getFileByUuid(parentUuid);
+            checkUniqueName(parentFolder, contentFileModel.getFileName());
             parentFolder.getSubFiles().add(contentFileModel);
             contentFileModel.setParentFolder(parentFolder);
             contentFileModel.setRootFolder(parentFolder.getRootFolder());
@@ -60,6 +61,7 @@ public class FileFacade {
             contentFileService.save(parentFolder);
         } catch (ServiceException ex) {
             var rootFolder = rootFolderService.getRootFolderByUuid(parentUuid);
+            checkUniqueName(rootFolder, contentFileModel.getFileName());
             rootFolder.getFiles().add(contentFileModel);
             contentFileModel.setRootFolder(rootFolder);
             contentFileModel.setPath(rootFolder.getPath() + "/" + contentFileModel.getFileName());

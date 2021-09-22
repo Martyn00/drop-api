@@ -40,6 +40,10 @@ public class RootFolderFacade {
         return rootFolderService.batchSaveRootFolders(rootFolderModels);
     }
 
+    public List<RootFolderModel> getRootFolderByUser(UserModel userModel) {
+        return rootFolderService.getAllRootFoldersByUserUuid(userModel);
+    }
+
     private RootFolderModel createSharedFolder(UserModel userModel) {
         return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
     }

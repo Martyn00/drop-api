@@ -11,7 +11,7 @@ import java.io.OutputStream;
 
 @Component
 public class FileService {
-    public int uploadFile(InputStream in, String path) {
+    public void uploadFile(InputStream in, String path) {
         path = "../server" + path;
         try {
             OutputStream out = new FileOutputStream(path);
@@ -21,6 +21,5 @@ public class FileService {
         } catch (IOException e) {
             throw new FolderException("Bad file or something...");
         }
-        return 1;
     }
 }

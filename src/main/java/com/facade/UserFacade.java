@@ -6,12 +6,15 @@ import com.controller.dto.LoggedResponseDto;
 import com.controller.dto.UserDto;
 import com.exception.InvalidCredentialsException;
 import com.exception.UserNotFoundException;
+import com.persistence.model.RootFolderModel;
 import com.persistence.model.UserModel;
 import com.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -27,17 +30,26 @@ public class UserFacade {
         UserModel userModel = modelMapper.map(userDto, UserModel.class);
         userModel.setPassword(encoder.encode(userDto.getPassword()));
         DisplayUserDto displayUserDto = modelMapper.map(userService.saveUser(userModel), DisplayUserDto.class);
-        rootFolderFacade.createRootFoldersForUser(userModel);
+        List<RootFolderModel> rootFolders = rootFolderFacade.createRootFoldersForUser(userModel);
+        displayUserDto.setPrivateUuid(getPrivateFolderUuid(rootFolders));
         return displayUserDto;
+    }
+
+    private String getPrivateFolderUuid(List<RootFolderModel> rootFolders) {
+        return rootFolders
+                .stream()
+                .filter(rootFolder -> rootFolder.getShared() == false)
+                .findFirst().get().getUuid();
     }
 
     public LoggedResponseDto createLoggedResponse(String token, AuthenticationDto authenticationDto) {
         UserModel userModel = userService.findUserByUsername(authenticationDto.getUsername());
         DisplayUserDto displayUserDto = modelMapper.map(userModel, DisplayUserDto.class);
+        displayUserDto.setPrivateUuid(getPrivateFolderUuid(rootFolderFacade.getRootFolderByUser(userModel)));
         return new LoggedResponseDto(token, displayUserDto);
     }
 
-    public void checkCredentials(AuthenticationDto authenticationDto){
+    public void checkCredentials(AuthenticationDto authenticationDto) {
         try {
             UserModel userModel = userService.findUserByUsername(authenticationDto.getUsername());
             if (!userService.isPasswordValid(authenticationDto.getPassword(), userModel.getPassword())) {
