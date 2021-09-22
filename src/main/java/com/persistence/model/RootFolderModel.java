@@ -33,7 +33,7 @@ public class RootFolderModel {
     @OneToOne(fetch = FetchType.EAGER)
     private UserModel folderCreator;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST})
     private List<ContentFileModel> files;
 
     @OneToMany(cascade = CascadeType.PERSIST)
