@@ -100,14 +100,14 @@ public class FileFacade {
         }
     }
 
-    private void checkUniqueName(ContentFileModel parentDirectory, String fileName) {
+    public void checkUniqueName(ContentFileModel parentDirectory, String fileName) {
         long count = parentDirectory.getSubFiles().stream().filter(file -> file.getFileName().equals(fileName)).count();
         if (count != 0) {
             throw new FolderException("File already exists in that folder");
         }
     }
 
-    private void checkUniqueName(RootFolderModel parentDirectory, String fileName) {
+    public void checkUniqueName(RootFolderModel parentDirectory, String fileName) {
         long count = parentDirectory.getFiles().stream().filter(file -> file.getFileName().equals(fileName)).count();
         if (count != 0) {
             throw new FolderException("File already exists in that folder");
