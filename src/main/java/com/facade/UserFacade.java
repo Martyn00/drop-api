@@ -6,12 +6,16 @@ import com.controller.dto.LoggedResponseDto;
 import com.controller.dto.UserDto;
 import com.exception.InvalidCredentialsException;
 import com.exception.UserNotFoundException;
+import com.persistence.model.RootFolderModel;
 import com.persistence.model.UserModel;
 import com.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -26,8 +30,10 @@ public class UserFacade {
     public DisplayUserDto createUser(UserDto userDto) {
         UserModel userModel = modelMapper.map(userDto, UserModel.class);
         userModel.setPassword(encoder.encode(userDto.getPassword()));
+        userModel.setAccessibleRootFolders(new ArrayList<>());
+//        userService.saveUser(userModel);
+        userModel.getAccessibleRootFolders().addAll(rootFolderFacade.createRootFoldersForUser(userModel));
         DisplayUserDto displayUserDto = modelMapper.map(userService.saveUser(userModel), DisplayUserDto.class);
-        rootFolderFacade.createRootFoldersForUser(userModel);
         return displayUserDto;
     }
 
@@ -54,5 +60,9 @@ public class UserFacade {
 
     public Boolean checkUserExistsByUsername(String username) {
         return userService.checkUserExistsByUsername(username);
+    }
+
+    List<RootFolderModel> getAllRootFoldersByUserUuid(String uuid) {
+        return userService.getUserByUuid(uuid).getAccessibleRootFolders();
     }
 }

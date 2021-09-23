@@ -1,10 +1,8 @@
 package com.facade;
 
 import com.foldermanipulation.RootFolderCreator;
-import com.persistence.model.RootFolderAccessModel;
 import com.persistence.model.RootFolderModel;
 import com.persistence.model.UserModel;
-import com.service.RootFolderAccessService;
 import com.service.RootFolderService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,19 +22,18 @@ public class RootFolderFacade {
 
     private RootFolderService rootFolderService;
     private RootFolderCreator rootFolderCreator;
-    private final RootFolderAccessService rootFolderAccessService;
 
     public List<RootFolderModel> createRootFoldersForUser(UserModel userModel) {
         List<RootFolderModel> rootFolderModels = new ArrayList<>();
         RootFolderModel privateRootFolder = createPrivateFolder(userModel);
         RootFolderModel sharedRootFolder = createSharedFolder(userModel);
-        RootFolderAccessModel privateRootFolderAccessModel = new RootFolderAccessModel();
-        privateRootFolderAccessModel.setUsers(Collections.singletonList(userModel));
-        privateRootFolderAccessModel.setRootFolders(Collections.singletonList(privateRootFolder));
-        privateRootFolder.getRootFolderAccessModel().add(privateRootFolderAccessModel);
         rootFolderModels.add(privateRootFolder);
         rootFolderModels.add(sharedRootFolder);
+
+//        creates physically the root folders
         rootFolderCreator.createRootFolders(userModel.getUsername());
+
+//        saves the rootfolders and the rootaccesfolders
         return rootFolderService.batchSaveRootFolders(rootFolderModels);
     }
 
@@ -56,7 +53,6 @@ public class RootFolderFacade {
         rootFolderModel.setShared(isShared);
         rootFolderModel.setPath(path);
         rootFolderModel.setFiles(Collections.emptyList());
-        rootFolderModel.setRootFolderAccessModel(new ArrayList<>());
         return rootFolderModel;
     }
 }
