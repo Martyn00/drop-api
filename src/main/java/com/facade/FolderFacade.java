@@ -43,6 +43,8 @@ public class FolderFacade {
 
     private final UserFacade userFacade;
 
+    private final FileFacade fileFacade;
+
     public DirectoriesDto getDirectories(String uuid) {
         List<RootFolderModel> rootFolders = userFacade.getAllRootFoldersByUserUuid(uuid);
         DirectoriesDto directoriesDto = fileMapper.mapRootFolders(rootFolders);
@@ -88,7 +90,9 @@ public class FolderFacade {
         FileTypeModel fileTypeModel = fileTypeService.getFileTypeByName("directory");
         createdFolder.setFileTypeModel(fileTypeModel);
         try {
+            System.out.println("RASAMATI");
             parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
+            fileFacade.checkUniqueName(parentFolder, createFolderDto.getFolderName());
             createdFolder.setParentFolder(parentFolder);
             createdFolder.setPath(parentFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(parentFolder.getRootFolder());
@@ -98,6 +102,7 @@ public class FolderFacade {
             contentFileService.save(parentFolder);
         } catch (ServiceException ex) {
             RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
+            fileFacade.checkUniqueName(rootFolder, createFolderDto.getFolderName());
             createdFolder.setPath(rootFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(rootFolder);
             createdFolder.setParentFolder(null);
@@ -168,7 +173,7 @@ public class FolderFacade {
         contentFileModels.forEach(c -> System.out.println(c.getPath()));
     }
 
-    public Boolean checkFileExistsByName(String fileName) {
-        return contentFileService.checkFileExistsByName(fileName);
+    public Boolean checkFileExistsByName(String parentUuid, String fileName) {
+        return contentFileService.checkFileExistsByName(parentUuid, fileName);
     }
 }

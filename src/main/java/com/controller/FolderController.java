@@ -4,7 +4,6 @@ import com.controller.dto.*;
 import com.facade.FileFacade;
 import com.facade.FolderFacade;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,12 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -69,9 +63,9 @@ public class FolderController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(value = "/exists/{folderName}")
-    public ResponseEntity<Boolean> checkFileExistsByName(@PathVariable String folderName) {
-        return new ResponseEntity<>(folderFacade.checkFileExistsByName(folderName), HttpStatus.OK);
+    @GetMapping(value = "/exists/{parentUuid}/{folderName}")
+    public ResponseEntity<Boolean> checkFileExistsByName(@PathVariable String parentUuid, @PathVariable String folderName) {
+        return new ResponseEntity<>(folderFacade.checkFileExistsByName(parentUuid, folderName), HttpStatus.OK);
     }
 
     @GetMapping(value = "/{fileUuid}/download", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
