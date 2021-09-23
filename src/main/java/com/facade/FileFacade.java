@@ -10,17 +10,10 @@ import com.service.ContentFileService;
 import com.service.FileTypeService;
 import com.service.RootFolderService;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -35,7 +28,7 @@ public class FileFacade {
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
         ContentFileModel contentFileModel = setBasicData(fileName, file.getSize());
         updateParents(contentFileModel, parentUuid);
-        fileUploader.uploadFile(getInputStream(file), contentFileModel.getPath());
+        fileUploader.uploadFile(file, contentFileModel.getPath());
     }
 
     private ContentFileModel setBasicData(String fileName, double size) {
@@ -74,30 +67,6 @@ public class FileFacade {
     public File getFile(String uuid) {
         ContentFileModel fileToDownload = contentFileService.getFileByUuid(uuid);
         return new File("../server/" + fileToDownload.getPath());
-    }
-
-    public Resource download(File fileToDownload) {
-        try {
-            Path file = Paths.get(fileToDownload.getPath());
-            Resource resource = new UrlResource(file.toUri());
-
-            if (resource.exists() || resource.isReadable()) {
-                return resource;
-            } else {
-                throw new RuntimeException("Could not read the file!");
-            }
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Error: " + e.getMessage());
-        }
-    }
-
-
-    private InputStream getInputStream(MultipartFile file) {
-        try {
-            return file.getInputStream();
-        } catch (IOException e) {
-            throw new FolderException("Could not upload file");
-        }
     }
 
     private void checkUniqueName(ContentFileModel parentDirectory, String fileName) {
