@@ -30,12 +30,10 @@ public class RootFolderModel {
     @Column(name = "isShared")
     private Boolean shared;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private UserModel folderCreator;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST})
-    private List<ContentFileModel> files;
 
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<RootFolderAccessModel> rootFolderAccessModel;
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<ContentFileModel> files;
 }

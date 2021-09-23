@@ -41,8 +41,10 @@ public class FolderFacade {
 
     private final ModelMapper modelMapper;
 
+    private final UserFacade userFacade;
+
     public DirectoriesDto getDirectories(String uuid) {
-        List<RootFolderModel> rootFolders = getRootFolders(uuid);
+        List<RootFolderModel> rootFolders = userFacade.getAllRootFoldersByUserUuid(uuid);
         DirectoriesDto directoriesDto = fileMapper.mapRootFolders(rootFolders);
         return directoriesDto;
     }
@@ -160,11 +162,6 @@ public class FolderFacade {
         Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
         newPath.deleteCharAt(newPath.length() - 1);
         return newPath;
-    }
-
-    private List<RootFolderModel> getRootFolders(String uuid) {
-        UserModel userModel = userService.getUserByUuid(uuid);
-        return rootFolderService.getAllRootFoldersByUserUuid(userModel);
     }
 
     public void printPaths(List<ContentFileModel> contentFileModels) {

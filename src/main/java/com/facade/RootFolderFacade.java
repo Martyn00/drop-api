@@ -1,10 +1,8 @@
 package com.facade;
 
 import com.foldermanipulation.RootFolderCreator;
-import com.persistence.model.RootFolderAccessModel;
 import com.persistence.model.RootFolderModel;
 import com.persistence.model.UserModel;
-import com.service.RootFolderAccessService;
 import com.service.RootFolderService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,24 +22,19 @@ public class RootFolderFacade {
 
     private RootFolderService rootFolderService;
     private RootFolderCreator rootFolderCreator;
-    private final RootFolderAccessService rootFolderAccessService;
 
     public List<RootFolderModel> createRootFoldersForUser(UserModel userModel) {
         List<RootFolderModel> rootFolderModels = new ArrayList<>();
         RootFolderModel privateRootFolder = createPrivateFolder(userModel);
         RootFolderModel sharedRootFolder = createSharedFolder(userModel);
-        RootFolderAccessModel privateRootFolderAccessModel = new RootFolderAccessModel();
-        privateRootFolderAccessModel.setUsers(Collections.singletonList(userModel));
-        privateRootFolderAccessModel.setRootFolders(Collections.singletonList(privateRootFolder));
-        privateRootFolder.getRootFolderAccessModel().add(privateRootFolderAccessModel);
         rootFolderModels.add(privateRootFolder);
         rootFolderModels.add(sharedRootFolder);
-        rootFolderCreator.createRootFolders(userModel.getUsername());
-        return rootFolderService.batchSaveRootFolders(rootFolderModels);
-    }
 
-    public List<RootFolderModel> getRootFolderByUser(UserModel userModel) {
-        return rootFolderService.getAllRootFoldersByUserUuid(userModel);
+//        creates physically the root folders
+        rootFolderCreator.createRootFolders(userModel.getUsername());
+
+//        saves the rootfolders and the rootaccesfolders
+        return rootFolderService.batchSaveRootFolders(rootFolderModels);
     }
 
     private RootFolderModel createSharedFolder(UserModel userModel) {
@@ -59,8 +52,7 @@ public class RootFolderFacade {
         rootFolderModel.setFileName(folderName);
         rootFolderModel.setShared(isShared);
         rootFolderModel.setPath(path);
-        rootFolderModel.setFiles(new ArrayList<>());
-        rootFolderModel.setRootFolderAccessModel(new ArrayList<>());
+        rootFolderModel.setFiles(Collections.emptyList());
         return rootFolderModel;
     }
 }

@@ -14,6 +14,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -29,27 +30,20 @@ public class UserFacade {
     public DisplayUserDto createUser(UserDto userDto) {
         UserModel userModel = modelMapper.map(userDto, UserModel.class);
         userModel.setPassword(encoder.encode(userDto.getPassword()));
+        userModel.setAccessibleRootFolders(new ArrayList<>());
+//        userService.saveUser(userModel);
+        userModel.getAccessibleRootFolders().addAll(rootFolderFacade.createRootFoldersForUser(userModel));
         DisplayUserDto displayUserDto = modelMapper.map(userService.saveUser(userModel), DisplayUserDto.class);
-        List<RootFolderModel> rootFolders = rootFolderFacade.createRootFoldersForUser(userModel);
-        displayUserDto.setPrivateUuid(getPrivateFolderUuid(rootFolders));
         return displayUserDto;
-    }
-
-    private String getPrivateFolderUuid(List<RootFolderModel> rootFolders) {
-        return rootFolders
-                .stream()
-                .filter(rootFolder -> rootFolder.getShared() == false)
-                .findFirst().get().getUuid();
     }
 
     public LoggedResponseDto createLoggedResponse(String token, AuthenticationDto authenticationDto) {
         UserModel userModel = userService.findUserByUsername(authenticationDto.getUsername());
         DisplayUserDto displayUserDto = modelMapper.map(userModel, DisplayUserDto.class);
-        displayUserDto.setPrivateUuid(getPrivateFolderUuid(rootFolderFacade.getRootFolderByUser(userModel)));
         return new LoggedResponseDto(token, displayUserDto);
     }
 
-    public void checkCredentials(AuthenticationDto authenticationDto) {
+    public void checkCredentials(AuthenticationDto authenticationDto){
         try {
             UserModel userModel = userService.findUserByUsername(authenticationDto.getUsername());
             if (!userService.isPasswordValid(authenticationDto.getPassword(), userModel.getPassword())) {
@@ -66,5 +60,9 @@ public class UserFacade {
 
     public Boolean checkUserExistsByUsername(String username) {
         return userService.checkUserExistsByUsername(username);
+    }
+
+    List<RootFolderModel> getAllRootFoldersByUserUuid(String uuid) {
+        return userService.getUserByUuid(uuid).getAccessibleRootFolders();
     }
 }

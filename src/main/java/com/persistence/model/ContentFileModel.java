@@ -43,7 +43,7 @@ public class ContentFileModel {
     @OneToOne(fetch = FetchType.EAGER)
     private FileTypeModel fileTypeModel;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST})
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ContentFileModel> subFiles;
 
     @ManyToOne(fetch = FetchType.EAGER)
