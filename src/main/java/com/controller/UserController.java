@@ -36,8 +36,8 @@ public class UserController {
     }
 
     @GetMapping(path = "/all-users")
-    public ResponseEntity<List<PossibleUserDto>> getAllUsers(String creatorUuid) {
-        return new ResponseEntity<>(userFacade.getUsersExceptingOne(creatorUuid), HttpStatus.OK);
+    public ResponseEntity<List<PossibleUserDto>> getAllUsers() {
+        return new ResponseEntity<>(userFacade.getUsersExceptingOne(), HttpStatus.OK);
     }
 
 }

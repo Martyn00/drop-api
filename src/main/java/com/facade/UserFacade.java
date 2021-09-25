@@ -8,8 +8,6 @@ import com.persistence.model.UserModel;
 import com.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +24,7 @@ public class UserFacade {
     private final RootFolderFacade rootFolderFacade;
     private final ModelMapper modelMapper;
     private final BCryptPasswordEncoder encoder;
+    private final AuthenticationFacade authenticationFacade;
 
     public DisplayUserDto createUser(UserDto userDto) {
         UserModel userModel = modelMapper.map(userDto, UserModel.class);
@@ -43,13 +42,13 @@ public class UserFacade {
         return new LoggedResponseDto(token, displayUserDto);
     }
 
-    public void checkCredentials(AuthenticationDto authenticationDto){
+    public void checkCredentials(AuthenticationDto authenticationDto) {
         try {
             UserModel userModel = userService.findUserByUsername(authenticationDto.getUsername());
             if (!userService.isPasswordValid(authenticationDto.getPassword(), userModel.getPassword())) {
                 throw new InvalidCredentialsException(INVALID_USER_OR_PASSWORD);
             }
-        } catch(UserNotFoundException exception){
+        } catch (UserNotFoundException exception) {
             throw new InvalidCredentialsException(INVALID_USER_OR_PASSWORD);
         }
     }
@@ -66,8 +65,8 @@ public class UserFacade {
         return userService.getUserByUuid(uuid).getAccessibleRootFolders();
     }
 
-    public List<PossibleUserDto> getUsersExceptingOne(String creatorUuid) {
-        UserModel loggedInUser = getUserFromSecurityContext();
+    public List<PossibleUserDto> getUsersExceptingOne() {
+        UserModel loggedInUser = authenticationFacade.getUserFromSecurityContext();
         return userService.getAllUsers()
                 .stream()
                 .filter(user -> !user.getUuid().equals(loggedInUser.getUuid()))
@@ -75,9 +74,5 @@ public class UserFacade {
                 .collect(Collectors.toList());
     }
 
-    public UserModel getUserFromSecurityContext() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        return userService.findUserByUsername(authentication.getName());
-    }
 }
