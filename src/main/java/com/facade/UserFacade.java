@@ -1,9 +1,6 @@
 package com.facade;
 
-import com.controller.dto.AuthenticationDto;
-import com.controller.dto.DisplayUserDto;
-import com.controller.dto.LoggedResponseDto;
-import com.controller.dto.UserDto;
+import com.controller.dto.*;
 import com.exception.InvalidCredentialsException;
 import com.exception.UserNotFoundException;
 import com.persistence.model.RootFolderModel;
@@ -11,11 +8,14 @@ import com.persistence.model.UserModel;
 import com.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -64,5 +64,20 @@ public class UserFacade {
 
     List<RootFolderModel> getAllRootFoldersByUserUuid(String uuid) {
         return userService.getUserByUuid(uuid).getAccessibleRootFolders();
+    }
+
+    public List<PossibleUserDto> getUsersExceptingOne(String creatorUuid) {
+        UserModel loggedInUser = getUserFromSecurityContext();
+        return userService.getAllUsers()
+                .stream()
+                .filter(user -> !user.getUuid().equals(loggedInUser.getUuid()))
+                .map(userModel -> modelMapper.map(userModel, PossibleUserDto.class))
+                .collect(Collectors.toList());
+    }
+
+    public UserModel getUserFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return userService.findUserByUsername(authentication.getName());
     }
 }

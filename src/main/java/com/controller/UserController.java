@@ -1,6 +1,7 @@
 package com.controller;
 
 import com.controller.dto.DisplayUserDto;
+import com.controller.dto.PossibleUserDto;
 import com.controller.dto.UserDto;
 import com.facade.UserFacade;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/users")
@@ -24,13 +26,18 @@ public class UserController {
     }
 
     @GetMapping(path = "/email-exists/{email}")
-    public ResponseEntity<Boolean> checkUserExistsByEmail(@PathVariable String email){
+    public ResponseEntity<Boolean> checkUserExistsByEmail(@PathVariable String email) {
         return new ResponseEntity<>(userFacade.checkUserExistsByEmail(email), HttpStatus.OK);
     }
 
     @GetMapping(path = "/username-exists/{username}")
-    public ResponseEntity<Boolean> checkUserExistsByUsername(@PathVariable String username){
+    public ResponseEntity<Boolean> checkUserExistsByUsername(@PathVariable String username) {
         return new ResponseEntity<>(userFacade.checkUserExistsByUsername(username), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/all-users")
+    public ResponseEntity<List<PossibleUserDto>> getAllUsers(String creatorUuid) {
+        return new ResponseEntity<>(userFacade.getUsersExceptingOne(creatorUuid), HttpStatus.OK);
     }
 
 }
