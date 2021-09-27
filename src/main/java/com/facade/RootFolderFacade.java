@@ -1,6 +1,7 @@
 package com.facade;
 
 import com.controller.dto.AddedUserDto;
+import com.exception.AuthorizationException;
 import com.exception.FacadeException;
 import com.foldermanipulation.RootFolderCreator;
 import com.persistence.model.RootFolderModel;
@@ -89,6 +90,9 @@ public class RootFolderFacade {
         }
         if (users.stream().anyMatch(user -> rootFolder.getAllowedUsers().contains(user))) {
             throw new FacadeException("An user is already added in the folder access table");
+        }
+        if (!rootFolder.getFolderCreator().getUuid().equals(authenticationFacade.getUserFromSecurityContext().getUuid())) {
+            throw new AuthorizationException("User does not have authorization for adding other users");
         }
     }
 }

@@ -55,6 +55,11 @@ public class ControllerExceptionHandler {
         return createResponseBody(exception.getMessage(), HttpStatus.UNAUTHORIZED, Collections.emptyList());
     }
 
+    @ExceptionHandler(AuthorizationException.class)
+    private ResponseEntity<Object> handleUserNameNotFoundException(AuthorizationException exception) {
+        return createResponseBody(exception.getMessage(), HttpStatus.UNAUTHORIZED, Collections.emptyList());
+    }
+
     @ExceptionHandler(ExpiredJwtException.class)
     private ResponseEntity<Object> handleUserNameNotFoundException(ExpiredJwtException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.UNAUTHORIZED, Collections.emptyList());
