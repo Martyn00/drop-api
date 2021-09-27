@@ -39,7 +39,12 @@ public class UserFacade {
 
     public LoggedResponseDto createLoggedResponse(String token, AuthenticationDto authenticationDto) {
         UserModel userModel = userService.findUserByUsername(authenticationDto.getUsername());
+        String privateRootFolderUuid = userModel.getAccessibleRootFolders()
+                .stream()
+                .filter(rootFolder -> rootFolder.getShared().equals(false)).findFirst()
+                .get().getUuid();
         DisplayUserDto displayUserDto = modelMapper.map(userModel, DisplayUserDto.class);
+        displayUserDto.setPrivateUuid(privateRootFolderUuid);
         return new LoggedResponseDto(token, displayUserDto);
     }
 
