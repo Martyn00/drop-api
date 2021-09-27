@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -45,11 +46,15 @@ public class UserService {
         return encoder.matches(rawPassword, encryptedPassword);
     }
 
-    public Boolean checkUserExistsByEmail(String email){
+    public Boolean checkUserExistsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
     public Boolean checkUserExistsByUsername(String username) {
         return userRepository.existsByUsername(username);
+    }
+
+    public List<UserModel> getAllUsers() {
+        return userRepository.findAll();
     }
 }

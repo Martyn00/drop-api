@@ -1,8 +1,10 @@
 package com.controller;
 
 import com.exception.*;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -46,5 +48,15 @@ public class ControllerExceptionHandler {
         responseBody.put("message", message);
         responseBody.put("errors", errors);
         return new ResponseEntity<>(responseBody, status);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    private ResponseEntity<Object> handleUserNameNotFoundException(UsernameNotFoundException exception) {
+        return createResponseBody(exception.getMessage(), HttpStatus.UNAUTHORIZED, Collections.emptyList());
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    private ResponseEntity<Object> handleUserNameNotFoundException(ExpiredJwtException exception) {
+        return createResponseBody(exception.getMessage(), HttpStatus.UNAUTHORIZED, Collections.emptyList());
     }
 }

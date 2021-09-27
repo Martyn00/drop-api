@@ -39,6 +39,7 @@ public class UserModel {
     @Column(name = "lastname")
     private String lastName;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RootFolderModel> accessibleRootFolders;
+
 }
