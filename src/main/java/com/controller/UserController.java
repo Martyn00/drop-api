@@ -35,9 +35,10 @@ public class UserController {
         return new ResponseEntity<>(userFacade.checkUserExistsByUsername(username), HttpStatus.OK);
     }
 
-    @GetMapping(path = "/all-users")
-    public ResponseEntity<List<PossibleUserDto>> getAllUsers() {
-        return new ResponseEntity<>(userFacade.getUsersExceptingOne(), HttpStatus.OK);
+    @GetMapping(path = "/all-users/{parentUuid}")
+    public ResponseEntity<List<PossibleUserDto>> getAllUsers(@PathVariable String parentUuid) {
+        return new ResponseEntity<>(userFacade.getUsersToBeAdded(parentUuid), HttpStatus.OK);
     }
+
 
 }

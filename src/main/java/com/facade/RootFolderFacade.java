@@ -3,7 +3,6 @@ package com.facade;
 import com.foldermanipulation.RootFolderCreator;
 import com.persistence.model.RootFolderModel;
 import com.persistence.model.UserModel;
-import com.service.RootFolderService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +18,6 @@ public class RootFolderFacade {
     private static final String PRIVATE = "private";
     private static final String SHARED = "shared";
     private static final String PATH_SEPARATOR = "/";
-
-    private RootFolderService rootFolderService;
     private RootFolderCreator rootFolderCreator;
 
     public List<RootFolderModel> createRootFoldersForUser(UserModel userModel) {
@@ -33,8 +30,8 @@ public class RootFolderFacade {
 //        creates physically the root folders
         rootFolderCreator.createRootFolders(userModel.getUsername());
 
-//        saves the rootfolders and the rootaccesfolders
-        return rootFolderService.batchSaveRootFolders(rootFolderModels);
+//        returns the rootfolders and the rootaccesfolders
+        return rootFolderModels;
     }
 
     private RootFolderModel createSharedFolder(UserModel userModel) {
@@ -53,6 +50,8 @@ public class RootFolderFacade {
         rootFolderModel.setShared(isShared);
         rootFolderModel.setPath(path);
         rootFolderModel.setFiles(Collections.emptyList());
+        rootFolderModel.setAllowedUsers(new ArrayList<>());
+        rootFolderModel.getAllowedUsers().add(userModel);
         return rootFolderModel;
     }
 }

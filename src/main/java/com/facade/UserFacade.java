@@ -5,6 +5,7 @@ import com.exception.InvalidCredentialsException;
 import com.exception.UserNotFoundException;
 import com.persistence.model.RootFolderModel;
 import com.persistence.model.UserModel;
+import com.service.RootFolderService;
 import com.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,15 +26,14 @@ public class UserFacade {
     private final ModelMapper modelMapper;
     private final BCryptPasswordEncoder encoder;
     private final AuthenticationFacade authenticationFacade;
+    private final RootFolderService rootFolderService;
 
     public DisplayUserDto createUser(UserDto userDto) {
         UserModel userModel = modelMapper.map(userDto, UserModel.class);
         userModel.setPassword(encoder.encode(userDto.getPassword()));
         userModel.setAccessibleRootFolders(new ArrayList<>());
-//        userService.saveUser(userModel);
         userModel.getAccessibleRootFolders().addAll(rootFolderFacade.createRootFoldersForUser(userModel));
-        DisplayUserDto displayUserDto = modelMapper.map(userService.saveUser(userModel), DisplayUserDto.class);
-        return displayUserDto;
+        return modelMapper.map(userService.saveUser(userModel), DisplayUserDto.class);
     }
 
     public LoggedResponseDto createLoggedResponse(String token, AuthenticationDto authenticationDto) {
@@ -65,11 +65,15 @@ public class UserFacade {
         return userService.getUserByUuid(uuid).getAccessibleRootFolders();
     }
 
-    public List<PossibleUserDto> getUsersExceptingOne() {
-        UserModel loggedInUser = authenticationFacade.getUserFromSecurityContext();
+    public List<PossibleUserDto> getUsersToBeAdded(String rootFolderUuid) {
+        RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(rootFolderUuid);
+        List<String> uuids = rootFolderModel.getAllowedUsers()
+                .stream().map(userModel -> userModel.getUuid())
+                .collect(Collectors.toList());
+
         return userService.getAllUsers()
                 .stream()
-                .filter(user -> !user.getUuid().equals(loggedInUser.getUuid()))
+                .filter(user -> !uuids.contains(user.getUuid()))
                 .map(userModel -> modelMapper.map(userModel, PossibleUserDto.class))
                 .collect(Collectors.toList());
     }
