@@ -3,6 +3,7 @@ package com.controller;
 import com.controller.dto.*;
 import com.facade.FileFacade;
 import com.facade.FolderFacade;
+import com.facade.RootFolderFacade;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/folders")
@@ -28,6 +30,8 @@ public class FolderController {
     private final FolderFacade folderFacade;
 
     private final FileFacade fileFacade;
+
+    private final RootFolderFacade rootFolderFacade;
 
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<DirectoriesDto> getAllDirectories(@PathVariable String uuid) {
@@ -50,6 +54,18 @@ public class FolderController {
     public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile[] files, @PathVariable String parentUuid) {
         Arrays.stream(files).forEach(file -> fileFacade.uploadFile(file, file.getOriginalFilename(), parentUuid));
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "/create-shared-folder/{folderName}")
+    public ResponseEntity<String> uploadFile(@PathVariable String folderName) {
+        rootFolderFacade.createSharedFolder(folderName);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "add-users-to-shared-folder/{folderUuid}")
+    public ResponseEntity<String> addUsersToSharedFolder(@PathVariable String folderUuid, @RequestBody List<AddedUserDto> addedUserDtos) {
+        rootFolderFacade.addUsersToSharedFolder(folderUuid, addedUserDtos);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @PutMapping
@@ -87,7 +103,6 @@ public class FolderController {
         return ResponseEntity.ok()
                 .headers(responseHeaders)
                 .body(fileSystemResource);
-
     }
 }
 

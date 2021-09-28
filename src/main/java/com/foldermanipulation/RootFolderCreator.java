@@ -15,7 +15,7 @@ public class RootFolderCreator {
     @Value("${user.files}")
     private String BASIC_PATH;
 
-    public void createServerDirectory(){
+    public void createServerDirectory() {
         File workingFile = new File(System.getProperty("user.dir"));
         File aboveWorking = new File(workingFile.getParent());
         try {
@@ -25,24 +25,23 @@ public class RootFolderCreator {
         }
     }
 
-    public void createRootFolders(String username) {
+    public void createBasicUserFolders(String username) {
         File usernameDirectory = new File(BASIC_PATH.concat(SLASH).concat(username));
         checkFolderExists(username, usernameDirectory);
         usernameDirectory.mkdir();
         createPrivateDirectory(username);
-        createSharedDirectory(username);
+    }
+
+    public void createRootFolder(String path) {
+        File rootFolder = new File(BASIC_PATH.concat(SLASH).concat(path));
+        checkFolderExists(rootFolder.getName(), rootFolder);
+        rootFolder.mkdir();
     }
 
     private void createPrivateDirectory(String username) {
         File privateDirectory = new File(BASIC_PATH.concat(SLASH).concat(username).concat(SLASH).concat("private"));
         checkFolderExists("private", privateDirectory);
         privateDirectory.mkdir();
-    }
-
-    private void createSharedDirectory(String username) {
-        File sharedDirectory = new File(BASIC_PATH.concat(SLASH).concat(username).concat(SLASH).concat("shared"));
-        checkFolderExists("shared", sharedDirectory);
-        sharedDirectory.mkdir();
     }
 
     private void checkFolderExists(String folderName, File usernameDirectory) {
