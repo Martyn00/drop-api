@@ -64,7 +64,6 @@ public class RootFolderFacade {
         return rootFolderModel;
     }
 
-    //    aici unde fac folder-ul nou?????
     public RootFolderModel createSharedFolder(String folderName) {
         UserModel userModel = authenticationFacade.getUserFromSecurityContext();
         rootFolderCreator.createRootFolder(PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + folderName);
