@@ -10,6 +10,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -50,10 +52,14 @@ public class FolderController {
                 createFolder(createFolderDto, username), HttpStatus.CREATED);
     }
 
+    @MessageMapping("/file-upload")
+    @SendTo("/content")
     @PostMapping(value = "/file-upload/{parentUuid}", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile[] files, @PathVariable String parentUuid) {
         Arrays.stream(files).forEach(file -> fileFacade.uploadFile(file, file.getOriginalFilename(), parentUuid));
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        String uploadedBy = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println(uploadedBy);
+        return new ResponseEntity<>("User ".concat(uploadedBy).concat(" uploaded a new file!"), HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/create-shared-folder/{folderName}")
