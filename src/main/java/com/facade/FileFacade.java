@@ -1,51 +1,50 @@
 package com.facade;
 
-import com.exception.FolderException;
 import com.exception.ServiceException;
 import com.foldermanipulation.FileService;
 import com.persistence.model.ContentFileModel;
-import com.persistence.model.FileTypeModel;
-import com.persistence.model.RootFolderModel;
 import com.service.ContentFileService;
 import com.service.FileTypeService;
 import com.service.RootFolderService;
+import com.util.FilePathChanger;
+import com.util.FileUtil;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.time.ZonedDateTime;
-import java.util.UUID;
 
 @Component
 @AllArgsConstructor
 public class FileFacade {
-    private final FileService fileUploader;
+    private final FileService fileService;
+
     private final ContentFileService contentFileService;
+
     private final RootFolderService rootFolderService;
+
     private final FileTypeService fileTypeService;
 
+    private final FileUtil fileUtil;
+
+    private final FolderFacade folderFacade;
+
+    private final ModelMapper modelMapper;
+
+    private final FilePathChanger filePathChanger;
+
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
-        ContentFileModel contentFileModel = setBasicData(fileName, file.getSize());
+        ContentFileModel contentFileModel = fileUtil.setBasicData(fileName, file.getSize());
         updateParents(contentFileModel, parentUuid);
-        fileUploader.uploadFile(file, contentFileModel.getPath());
+        fileService.uploadFile(file, contentFileModel.getPath());
     }
 
-    private ContentFileModel setBasicData(String fileName, double size) {
-        ContentFileModel contentFileModel = new ContentFileModel();
-        contentFileModel.setUuid(UUID.randomUUID().toString());
-        contentFileModel.setAddedDate(ZonedDateTime.now());
-        contentFileModel.setLastModifiedDate(ZonedDateTime.now());
-        contentFileModel.setSize(size);
-        contentFileModel.setFileName(fileName);
-        contentFileModel.setFileTypeModel(getFileType("text"));
-        return contentFileModel;
-    }
 
     private void updateParents(ContentFileModel contentFileModel, String parentUuid) {
         try {
             var parentFolder = contentFileService.getFileByUuid(parentUuid);
-            checkUniqueName(parentFolder, contentFileModel.getFileName());
+            fileUtil.checkUniqueName(parentFolder, contentFileModel.getFileName());
             parentFolder.getSubFiles().add(contentFileModel);
             contentFileModel.setParentFolder(parentFolder);
             contentFileModel.setRootFolder(parentFolder.getRootFolder());
@@ -54,7 +53,7 @@ public class FileFacade {
             contentFileService.save(parentFolder);
         } catch (ServiceException ex) {
             var rootFolder = rootFolderService.getRootFolderByUuid(parentUuid);
-            checkUniqueName(rootFolder, contentFileModel.getFileName());
+            fileUtil.checkUniqueName(rootFolder, contentFileModel.getFileName());
             rootFolder.getFiles().add(contentFileModel);
             contentFileModel.setRootFolder(rootFolder);
             contentFileModel.setPath(rootFolder.getPath() + "/" + contentFileModel.getFileName());
@@ -69,25 +68,25 @@ public class FileFacade {
         return new File("../server/" + fileToDownload.getPath());
     }
 
-    public void checkUniqueName(ContentFileModel parentDirectory, String fileName) {
-        long count = parentDirectory.getSubFiles().stream().filter(file -> file.getFileName().equals(fileName)).count();
-        if (count != 0) {
-            throw new FolderException("File already exists in that folder");
+
+    public void moveFile(String uuid, String destinationUuid, Boolean copy) {
+        ContentFileModel fileModel = contentFileService.getFileByUuid(uuid);
+        String newPath = getParentPath(destinationUuid) + "/" + fileModel.getFileName();
+        if (copy.equals(false)) {
+            fileService.moveFile("../server" + fileModel.getPath(), "../server" + newPath);
+            filePathChanger.updateFilesOnMove(fileModel, destinationUuid, newPath);
+        } else {
+            fileService.copyFile("../server" + fileModel.getPath(), "../server" + newPath);
+            filePathChanger.updateFilesOnCopy(fileModel, destinationUuid);
         }
     }
 
-    public void checkUniqueName(RootFolderModel parentDirectory, String fileName) {
-        long count = parentDirectory.getFiles().stream().filter(file -> file.getFileName().equals(fileName)).count();
-        if (count != 0) {
-            throw new FolderException("File already exists in that folder");
+
+    String getParentPath(String parentUuid) {
+        try {
+            return rootFolderService.getRootFolderByUuid(parentUuid).getPath();
+        } catch (ServiceException ex) {
+            return contentFileService.getFileByUuid(parentUuid).getPath();
         }
-    }
-
-
-    private FileTypeModel getFileType(String fileTypeName) {
-        FileTypeModel fileTypeModel = fileTypeService.getAllFileTypes().stream().
-                filter(fileType -> fileType.getTypeName()
-                        .equals(fileTypeName)).findFirst().get();
-        return fileTypeModel;
     }
 }
