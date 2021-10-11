@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -34,7 +36,15 @@ public class ContentFileService {
         contentFileRepository.deleteByUuid(uuid);
     }
 
-    public Boolean checkFileExistsByName(String fileName){
-        return contentFileRepository.existsByFileName(fileName);
+    public Boolean checkFileExistsByName(String parentUuid, String fileName) {
+        ContentFileModel parentFolder = findContentFileModelByUuid(parentUuid);
+        Optional<ContentFileModel> fileWithSameName = parentFolder.getSubFiles()
+                .stream()
+                .filter(subFile -> subFile.getFileName().equals(fileName)).findFirst();
+        return fileWithSameName.isPresent();
+    }
+
+    public List<ContentFileModel> batchSave(List<ContentFileModel> fileModels) {
+        return contentFileRepository.saveAll(fileModels);
     }
 }

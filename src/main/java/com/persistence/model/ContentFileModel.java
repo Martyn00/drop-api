@@ -43,7 +43,7 @@ public class ContentFileModel {
     @OneToOne(fetch = FetchType.EAGER)
     private FileTypeModel fileTypeModel;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ContentFileModel> subFiles;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -51,5 +51,4 @@ public class ContentFileModel {
 
     @ManyToOne(fetch = FetchType.EAGER)
     private ContentFileModel parentFolder;
-
 }

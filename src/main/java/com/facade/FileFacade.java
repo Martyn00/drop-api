@@ -1,104 +1,92 @@
 package com.facade;
 
-import com.exception.FolderException;
 import com.exception.ServiceException;
 import com.foldermanipulation.FileService;
 import com.persistence.model.ContentFileModel;
-import com.persistence.model.FileTypeModel;
-import com.persistence.model.RootFolderModel;
 import com.service.ContentFileService;
 import com.service.FileTypeService;
 import com.service.RootFolderService;
+import com.util.FilePathChanger;
+import com.util.FileUtil;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.ZonedDateTime;
-import java.util.UUID;
+import java.io.File;
 
 @Component
 @AllArgsConstructor
 public class FileFacade {
-    private final FileService fileUploader;
+    private final FileService fileService;
+
     private final ContentFileService contentFileService;
+
     private final RootFolderService rootFolderService;
+
     private final FileTypeService fileTypeService;
 
+    private final FileUtil fileUtil;
+
+    private final FolderFacade folderFacade;
+
+    private final ModelMapper modelMapper;
+
+    private final FilePathChanger filePathChanger;
+
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
-        ContentFileModel contentFileModel = new ContentFileModel();
-        InputStream inputStream = getInputStream(file);
-        int size = 0;
+        ContentFileModel contentFileModel = fileUtil.setBasicData(fileName, file.getSize());
+        updateParents(contentFileModel, parentUuid);
+        fileService.uploadFile(file, contentFileModel.getPath());
+    }
+
+
+    private void updateParents(ContentFileModel contentFileModel, String parentUuid) {
         try {
-            RootFolderModel parentDirectory = rootFolderService.getRootFolderByUuid(parentUuid);
-            checkUniqueName(parentDirectory, fileName);
-            size = fileUploader.uploadFile(inputStream, parentDirectory.getPath() + "/" + fileName);
-            contentFileModel.setFileCreator(parentDirectory.getFolderCreator());
-            contentFileModel.setPath(parentDirectory.getPath() + "/" + fileName);
-            contentFileModel.setRootFolder(parentDirectory);
+            var parentFolder = contentFileService.getFileByUuid(parentUuid);
+            fileUtil.checkUniqueName(parentFolder, contentFileModel.getFileName());
+            parentFolder.getSubFiles().add(contentFileModel);
+            contentFileModel.setParentFolder(parentFolder);
+            contentFileModel.setRootFolder(parentFolder.getRootFolder());
+            contentFileModel.setPath(parentFolder.getPath() + "/" + contentFileModel.getFileName());
+            contentFileModel.setFileCreator(parentFolder.getFileCreator());
+            contentFileService.save(parentFolder);
         } catch (ServiceException ex) {
-            ContentFileModel parentDirectory = contentFileService.findContentFileModelByUuid(parentUuid);
-            checkUniqueName(parentDirectory, fileName);
-            size = fileUploader.uploadFile(inputStream, parentDirectory.getPath() + "/" + fileName);
-            contentFileModel.setRootFolder(parentDirectory.getRootFolder());
-            contentFileModel.setParentFolder(parentDirectory);
-            contentFileModel.setFileCreator(parentDirectory.getFileCreator());
-            contentFileModel.setPath(parentDirectory.getPath() + "/" + fileName);
+            var rootFolder = rootFolderService.getRootFolderByUuid(parentUuid);
+            fileUtil.checkUniqueName(rootFolder, contentFileModel.getFileName());
+            rootFolder.getFiles().add(contentFileModel);
+            contentFileModel.setRootFolder(rootFolder);
+            contentFileModel.setPath(rootFolder.getPath() + "/" + contentFileModel.getFileName());
+            contentFileModel.setFileCreator(rootFolder.getFolderCreator());
+            rootFolderService.saveRootFolder(rootFolder);
         }
-        setData(fileName, contentFileModel, size);
-        updateParents(contentFileModel);
+
     }
 
-    private void setData(String fileName, ContentFileModel contentFileModel, double size) {
-        contentFileModel.setUuid(UUID.randomUUID().toString());
-        contentFileModel.setAddedDate(ZonedDateTime.now());
-        contentFileModel.setLastModifiedDate(ZonedDateTime.now());
-        contentFileModel.setSize(size);
-        contentFileModel.setFileName(fileName);
-        contentFileModel.setFileTypeModel(getFileType("text"));
-        contentFileService.save(contentFileModel);
+    public File getFile(String uuid) {
+        ContentFileModel fileToDownload = contentFileService.getFileByUuid(uuid);
+        return new File("../server/" + fileToDownload.getPath());
     }
 
-    private InputStream getInputStream(MultipartFile file) {
-        try {
-            return file.getInputStream();
-        } catch (IOException e) {
-            throw new FolderException("Could not upload file");
-        }
-    }
 
-    private void checkUniqueName(ContentFileModel parentDirectory, String fileName) {
-        long count = parentDirectory.getSubFiles().stream().filter(file -> file.getFileName().equals(fileName)).count();
-        if (count != 0) {
-            throw new FolderException("File already exists in that folder");
-        }
-    }
-
-    private void checkUniqueName(RootFolderModel parentDirectory, String fileName) {
-        long count = parentDirectory.getFiles().stream().filter(file -> file.getFileName().equals(fileName)).count();
-        if (count != 0) {
-            throw new FolderException("File already exists in that folder");
-        }
-    }
-
-    private void updateParents(ContentFileModel contentFileModel) {
-        if (contentFileModel.getParentFolder() != null) {
-            ContentFileModel conteFileParent = contentFileModel.getParentFolder();
-            conteFileParent.getSubFiles().add(contentFileModel);
-            contentFileService.save(conteFileParent);
+    public void moveFile(String uuid, String destinationUuid, Boolean copy) {
+        ContentFileModel fileModel = contentFileService.getFileByUuid(uuid);
+        String newPath = getParentPath(destinationUuid) + "/" + fileModel.getFileName();
+        if (copy.equals(false)) {
+            fileService.moveFile("../server" + fileModel.getPath(), "../server" + newPath);
+            filePathChanger.updateFilesOnMove(fileModel, destinationUuid, newPath);
         } else {
-            RootFolderModel rootFolderModel = contentFileModel.getRootFolder();
-            rootFolderModel.getFiles().add(contentFileModel);
-            rootFolderService.saveRootFolder(rootFolderModel);
+            fileService.copyFile("../server" + fileModel.getPath(), "../server" + newPath);
+            filePathChanger.updateFilesOnCopy(fileModel, destinationUuid);
         }
     }
 
 
-    private FileTypeModel getFileType(String fileTypeName) {
-        FileTypeModel fileTypeModel = fileTypeService.getAllFileTypes().stream().
-                filter(fileType -> fileType.getTypeName()
-                        .equals(fileTypeName)).findFirst().get();
-        return fileTypeModel;
+    String getParentPath(String parentUuid) {
+        try {
+            return rootFolderService.getRootFolderByUuid(parentUuid).getPath();
+        } catch (ServiceException ex) {
+            return contentFileService.getFileByUuid(parentUuid).getPath();
+        }
     }
 }

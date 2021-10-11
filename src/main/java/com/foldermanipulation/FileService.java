@@ -2,17 +2,25 @@ package com.foldermanipulation;
 
 import com.exception.FolderException;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @Component
 public class FileService {
-    public int uploadFile(InputStream in, String path) {
-        path = "../server" + path;
+
+    @Value("${user.files}")
+    private String BASIC_PATH;
+
+    public void uploadFile(MultipartFile file, String path) {
+        path = BASIC_PATH + path;
+        InputStream in = getInputStream(file);
         try {
             OutputStream out = new FileOutputStream(path);
             IOUtils.copy(in, out);
@@ -21,6 +29,31 @@ public class FileService {
         } catch (IOException e) {
             throw new FolderException("Bad file or something...");
         }
-        return 1;
+    }
+
+    private InputStream getInputStream(MultipartFile file) {
+        try {
+            return file.getInputStream();
+        } catch (IOException e) {
+            throw new FolderException("Could not upload file");
+        }
+    }
+
+    public void moveFile(String initialPath, String movePath) {
+        File fileToMove = new File(initialPath);
+        boolean isMoved = fileToMove.renameTo(new File(movePath));
+        if (!isMoved) {
+            throw new FolderException("Folder or file cannot be moved!");
+        }
+    }
+
+    public void copyFile(String initialPath, String movePath) {
+        Path copied = Paths.get(movePath);
+        Path originalPath = Paths.get(initialPath);
+        try {
+            Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new FolderException("Folder or file cannot be copied");
+        }
     }
 }

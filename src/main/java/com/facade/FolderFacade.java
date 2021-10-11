@@ -12,12 +12,16 @@ import com.service.FileTypeService;
 import com.service.RootFolderService;
 import com.service.UserService;
 import com.util.FileMapper;
+import com.util.FileUtil;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,10 +42,13 @@ public class FolderFacade {
 
     private final ModelMapper modelMapper;
 
+    private final UserFacade userFacade;
+
+    private final FileUtil fileutil;
+
     public DirectoriesDto getDirectories(String uuid) {
-        List<RootFolderModel> rootFolders = getRootFolders(uuid);
-        DirectoriesDto directoriesDto = fileMapper.mapRootFolders(rootFolders);
-        return directoriesDto;
+        List<RootFolderModel> rootFolders = userFacade.getAllRootFoldersByUserUuid(uuid);
+        return fileMapper.mapRootFolders(rootFolders);
     }
 
     public ContentDto getAllFiles(String uuid) {
@@ -65,7 +72,7 @@ public class FolderFacade {
         }
         List<FileMetadataDto> contentFileDtos = contentFiles
                 .stream()
-                .map(contentFileModel -> fileMapper.mapContentFileToFileMetadataDto(contentFileModel))
+                .map(fileMapper::mapContentFileToFileMetadataDto)
                 .collect(Collectors.toList());
         return new ContentDto(contentFileParentDto, contentFileDtos);
     }
@@ -84,6 +91,7 @@ public class FolderFacade {
         createdFolder.setFileTypeModel(fileTypeModel);
         try {
             parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
+            fileutil.checkUniqueName(parentFolder, createFolderDto.getFolderName());
             createdFolder.setParentFolder(parentFolder);
             createdFolder.setPath(parentFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(parentFolder.getRootFolder());
@@ -93,6 +101,7 @@ public class FolderFacade {
             contentFileService.save(parentFolder);
         } catch (ServiceException ex) {
             RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
+            fileutil.checkUniqueName(rootFolder, createFolderDto.getFolderName());
             createdFolder.setPath(rootFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(rootFolder);
             createdFolder.setParentFolder(null);
@@ -121,7 +130,7 @@ public class FolderFacade {
         return fileMapper.mapContentFileToDirectoryDto(folderToRename);
     }
 
-    public void renamePaths(List<ContentFileModel> contentFileModels, String name, int index){
+    public void renamePaths(List<ContentFileModel> contentFileModels, String name, int index) {
         contentFileModels.forEach(contentFileModel ->
         {
             String[] pathToRename = contentFileModel.getPath().split(SLASH);
@@ -139,7 +148,7 @@ public class FolderFacade {
     public void deleteFileByUuid(String uuid) {
         ContentFileModel fileToDelete = contentFileService.findContentFileModelByUuid(uuid);
         ContentFileModel parent = fileToDelete.getParentFolder();
-        if(parent != null){
+        if (parent != null) {
             parent.getSubFiles().remove(fileToDelete);
             contentFileService.save(parent);
         } else {
@@ -159,16 +168,11 @@ public class FolderFacade {
         return newPath;
     }
 
-    private List<RootFolderModel> getRootFolders(String uuid) {
-        UserModel userModel = userService.getUserByUuid(uuid);
-        return rootFolderService.getAllRootFoldersByUserUuid(userModel);
-    }
-
-    public void printPaths(List<ContentFileModel> contentFileModels){
+    public void printPaths(List<ContentFileModel> contentFileModels) {
         contentFileModels.forEach(c -> System.out.println(c.getPath()));
     }
 
-    public Boolean checkFileExistsByName(String fileName) {
-        return contentFileService.checkFileExistsByName(fileName);
+    public Boolean checkFileExistsByName(String parentUuid, String fileName) {
+        return contentFileService.checkFileExistsByName(parentUuid, fileName);
     }
 }
