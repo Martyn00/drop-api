@@ -4,12 +4,10 @@ import com.exception.ServiceException;
 import com.foldermanipulation.FileService;
 import com.persistence.model.ContentFileModel;
 import com.service.ContentFileService;
-import com.service.FileTypeService;
 import com.service.RootFolderService;
 import com.util.FilePathChanger;
 import com.util.FileUtil;
 import lombok.AllArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,16 +19,9 @@ public class FileFacade {
     private final FileService fileService;
 
     private final ContentFileService contentFileService;
-
     private final RootFolderService rootFolderService;
 
-    private final FileTypeService fileTypeService;
-
     private final FileUtil fileUtil;
-
-    private final FolderFacade folderFacade;
-
-    private final ModelMapper modelMapper;
 
     private final FilePathChanger filePathChanger;
 

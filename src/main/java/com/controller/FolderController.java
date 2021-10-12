@@ -105,10 +105,10 @@ public class FolderController {
                 .body(fileSystemResource);
     }
 
-    @PutMapping(value = "/move/{fileUuid}/{destinationUuid}")
-    public ResponseEntity<String> moveFile(@PathVariable String fileUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
-        fileFacade.moveFile(fileUuid, destinationUuid, copy);
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+    @PutMapping(value = "/move/{destinationUuid}")
+    public ResponseEntity<Object> moveFile(@RequestBody List<FileToMoveDto> filesUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
+        filesUuid.forEach(fileUuid -> fileFacade.moveFile(fileUuid.getUuid(), destinationUuid, copy));
+        return new ResponseEntity<Object>(HttpStatus.ACCEPTED);
     }
 }
 
