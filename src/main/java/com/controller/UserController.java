@@ -15,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/users")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class UserController {
 
     private final UserFacade userFacade;

@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ControllerAdvice
-@CrossOrigin(origins = "https://8522-79-117-158-86.ngrok.ioo")
+@CrossOrigin(origins = "http://localhost:4200")
 public class ControllerExceptionHandler {
 
     @ExceptionHandler(FacadeException.class)

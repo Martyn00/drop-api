@@ -12,6 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/fileTypes")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class FileTypeController {
     private FileTypeFacade fileTypeFacade;
 
