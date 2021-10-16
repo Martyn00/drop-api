@@ -9,6 +9,8 @@ import com.service.RootFolderService;
 import com.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -82,5 +84,21 @@ public class UserFacade {
                 .collect(Collectors.toList());
     }
 
+    public List<PossibleUserDto> getUsersAlreadyAdded(String rootFolderUuid) {
+        RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(rootFolderUuid);
+        List<String> uuids = rootFolderModel.getAllowedUsers()
+                .stream().map(UserModel::getUuid)
+                .collect(Collectors.toList());
+        return userService.getAllUsers()
+                .stream()
+                .filter(user -> uuids.contains(user.getUuid()))
+                .filter(user -> !user.getUsername().equals(getUsernameFromContext()))
+                .map(userModel -> modelMapper.map(userModel, PossibleUserDto.class))
+                .collect(Collectors.toList());
+    }
 
+    private String getUsernameFromContext() {
+        UserDetails details = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return details.getUsername();
+    }
 }

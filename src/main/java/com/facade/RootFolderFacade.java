@@ -84,8 +84,4 @@ public class RootFolderFacade {
         }
     }
 
-    private RootFolderModel createSharedFolder(UserModel userModel) {
-        return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
-    }
-
 }
