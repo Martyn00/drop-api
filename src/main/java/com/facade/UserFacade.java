@@ -9,9 +9,11 @@ import com.service.RootFolderService;
 import com.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -87,11 +89,16 @@ public class UserFacade {
         List<String> uuids = rootFolderModel.getAllowedUsers()
                 .stream().map(UserModel::getUuid)
                 .collect(Collectors.toList());
-
         return userService.getAllUsers()
                 .stream()
                 .filter(user -> uuids.contains(user.getUuid()))
+                .filter(user -> !user.getUsername().equals(getNameFromContext()))
                 .map(userModel -> modelMapper.map(userModel, PossibleUserDto.class))
                 .collect(Collectors.toList());
+    }
+
+    private String getNameFromContext() {
+        Principal principal = (Principal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return principal.getName();
     }
 }
