@@ -82,5 +82,16 @@ public class UserFacade {
                 .collect(Collectors.toList());
     }
 
+    public List<PossibleUserDto> getUsersAlreadyAdded(String rootFolderUuid) {
+        RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(rootFolderUuid);
+        List<String> uuids = rootFolderModel.getAllowedUsers()
+                .stream().map(UserModel::getUuid)
+                .collect(Collectors.toList());
 
+        return userService.getAllUsers()
+                .stream()
+                .filter(user -> uuids.contains(user.getUuid()))
+                .map(userModel -> modelMapper.map(userModel, PossibleUserDto.class))
+                .collect(Collectors.toList());
+    }
 }

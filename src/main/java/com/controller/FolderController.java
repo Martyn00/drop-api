@@ -4,6 +4,7 @@ import com.controller.dto.*;
 import com.facade.FileFacade;
 import com.facade.FolderFacade;
 import com.facade.RootFolderFacade;
+import com.facade.UserFacade;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +33,8 @@ public class FolderController {
     private final FileFacade fileFacade;
 
     private final RootFolderFacade rootFolderFacade;
+
+    private final UserFacade userFacade;
 
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<DirectoriesDto> getAllDirectories(@PathVariable String uuid) {
@@ -109,6 +112,16 @@ public class FolderController {
     public ResponseEntity<Object> moveFile(@RequestBody List<FileToMoveDto> filesUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
         filesUuid.forEach(fileUuid -> fileFacade.moveFile(fileUuid.getUuid(), destinationUuid, copy));
         return new ResponseEntity<Object>(HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping(path = "/{parentUuid}/users-without-access")
+    public ResponseEntity<List<PossibleUserDto>> getAllUsersWithoutAcces(@PathVariable String parentUuid) {
+        return new ResponseEntity<>(userFacade.getUsersToBeAdded(parentUuid), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/{parentUuid}/users-with-access")
+    public ResponseEntity<List<PossibleUserDto>> getAllUsersWithClient(@PathVariable String parentUuid) {
+        return new ResponseEntity<>(userFacade.getUsersAlreadyAdded(parentUuid), HttpStatus.OK);
     }
 }
 
