@@ -184,13 +184,13 @@ public class FolderFacade {
         }
     }
 
-    public File zipAll(String path) {
+    public File zipAll(String path, String directoryName) {
         File directoryToZip = new File(path);
         String[] splitPath = path.split("\\\\");
         String fileName = splitPath[splitPath.length - 1];
         String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
                 concat(SecurityContextHolder.getContext().getAuthentication().getName())
-                .concat(SLASH).concat(fileName).concat(ZIP);
+                .concat(SLASH).concat(directoryName).concat(ZIP);
         File newZip = new File(zipPath);
         ZipUtil.pack(directoryToZip, newZip);
         return newZip;
