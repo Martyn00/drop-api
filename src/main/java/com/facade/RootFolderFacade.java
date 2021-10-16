@@ -84,4 +84,11 @@ public class RootFolderFacade {
         }
     }
 
+    public void deleteUserFromRootFolder(String parentUuid, String userUuid) {
+        RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(parentUuid);
+        UserModel userModel = userService.getUserByUuid(userUuid);
+        userModel.getAccessibleRootFolders().remove(rootFolderModel);
+        rootFolderModel.getAllowedUsers().remove(userModel);
+        rootFolderService.saveRootFolder(rootFolderModel);
+    }
 }
