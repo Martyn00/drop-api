@@ -16,10 +16,9 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -29,13 +28,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @Component
 @AllArgsConstructor
 public class FolderFacade {
     public static final String SLASH = "/";
+    public static final String SERVER_DIR = "server";
+    public static final String TEMP_DIR = "temp";
+    public static final String PARENT_DIRECTORY = "..";
+    public static final String ZIP = ".zip";
     private final RootFolderService rootFolderService;
 
     private final ContentFileService contentFileService;
@@ -170,42 +171,55 @@ public class FolderFacade {
         folderCreator.deleteFolder(fileToDelete.getPath());
     }
 
-    public void createTempDirectoryForUser(String user){
+    public void createTempDirectoryForUser(String user) {
         File workingFile = new File(System.getProperty("user.dir"));
         File aboveWorking = new File(workingFile.getParent());
-        try{
-            Files.createDirectories(Paths.get(aboveWorking.getPath() + "/server/temp/" + user));
-        } catch(IOException e){
+        try {
+            Files.createDirectories(Paths.get(aboveWorking.getPath() + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH + user));
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public File zipDirectory(String path) throws IOException {
+    public File zipAll(String path) {
         File directoryToZip = new File(path);
         String[] splitPath = path.split("\\\\");
         String fileName = splitPath[splitPath.length - 1];
-        String zipPath = "../server/temp/".concat(SecurityContextHolder.getContext().getAuthentication().getName())
-                .concat(SLASH).concat(fileName).concat(".zip");
-        FileOutputStream fileOutputStream = new FileOutputStream(zipPath);
-        ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
-        File[] files = directoryToZip.listFiles();
-        for (File file : files) {
-            FileInputStream fileInputStream = new FileInputStream(file);
-            ZipEntry zipEntry = new ZipEntry(file.getName());
-            zipOutputStream.putNextEntry(zipEntry);
-            int length;
-            byte[] bytes = new byte[1024];
-            while ((length = fileInputStream.read(bytes)) >= 0) {
-                zipOutputStream.write(bytes, 0, length);
-            }
-            fileInputStream.close();
-        }
-
-//        fileInputStream.close();
-        zipOutputStream.close();
-        fileOutputStream.close();
-        return new File(zipPath);
+        String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
+                concat(SecurityContextHolder.getContext().getAuthentication().getName())
+                .concat(SLASH).concat(fileName).concat(ZIP);
+        File newZip = new File(zipPath);
+        ZipUtil.pack(directoryToZip, newZip);
+        return newZip;
     }
+
+    //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
+
+//    public File zipDirectory(String path) throws IOException {
+//        File directoryToZip = new File(path);
+//        String[] splitPath = path.split("\\\\");
+//        String fileName = splitPath[splitPath.length - 1];
+//        String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
+//                concat(SecurityContextHolder.getContext().getAuthentication().getName())
+//                .concat(SLASH).concat(fileName).concat(ZIP);
+//        try (FileOutputStream fileOutputStream = new FileOutputStream(zipPath);
+//             ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream)) {
+//            File[] files = directoryToZip.listFiles();
+//            Objects.requireNonNull(files);
+//            for (File file : files) {
+//                try (FileInputStream fileInputStream = new FileInputStream(file)) {
+//                    ZipEntry zipEntry = new ZipEntry(file.getName());
+//                    zipOutputStream.putNextEntry(zipEntry);
+//                    int length;
+//                    byte[] bytes = new byte[1024];
+//                    while ((length = fileInputStream.read(bytes)) >= 0) {
+//                        zipOutputStream.write(bytes, 0, length);
+//                    }
+//                }
+//            }
+//        }
+//        return new File(zipPath);
+//    }
 
     private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
         splitPath[folderToRenameIndex] = folderName;

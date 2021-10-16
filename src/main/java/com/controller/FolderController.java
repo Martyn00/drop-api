@@ -90,7 +90,7 @@ public class FolderController {
         File fileToDownload = fileFacade.getFile(fileUuid);
         if (fileToDownload.isDirectory()) {
             folderFacade.createTempDirectoryForUser(SecurityContextHolder.getContext().getAuthentication().getName());
-            fileToDownload = folderFacade.zipDirectory(fileToDownload.getAbsolutePath());
+            fileToDownload = folderFacade.zipAll(fileToDownload.getAbsolutePath());
         }
         System.out.println(fileToDownload.exists());
         FileSystemResource fileSystemResource = new FileSystemResource(fileToDownload);

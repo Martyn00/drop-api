@@ -43,27 +43,6 @@ public class RootFolderFacade {
         return rootFolderModels;
     }
 
-    private RootFolderModel createSharedFolder(UserModel userModel) {
-        return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
-    }
-
-    private RootFolderModel createPrivateFolder(UserModel userModel) {
-        return createFolderModel(userModel, PRIVATE, Boolean.FALSE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + PRIVATE);
-    }
-
-    private RootFolderModel createFolderModel(UserModel userModel, String folderName, Boolean isShared, String path) {
-        RootFolderModel rootFolderModel = new RootFolderModel();
-        rootFolderModel.setFolderCreator(userModel);
-        rootFolderModel.setUuid(UUID.randomUUID().toString());
-        rootFolderModel.setFileName(folderName);
-        rootFolderModel.setShared(isShared);
-        rootFolderModel.setPath(path);
-        rootFolderModel.setFiles(Collections.emptyList());
-        rootFolderModel.setAllowedUsers(new ArrayList<>());
-        rootFolderModel.getAllowedUsers().add(userModel);
-        return rootFolderModel;
-    }
-
     public RootFolderModel createSharedFolder(String folderName) {
         UserModel userModel = authenticationFacade.getUserFromSecurityContext();
         rootFolderCreator.createRootFolder(PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + folderName);
@@ -83,7 +62,7 @@ public class RootFolderFacade {
         rootFolderService.saveRootFolder(rootFolderModel);
     }
 
-    public void validateAddition(RootFolderModel rootFolder, List<UserModel> users) {
+    private void validateAddition(RootFolderModel rootFolder, List<UserModel> users) {
         if (rootFolder.getShared().equals(false)) {
             throw new FacadeException("Folder is private");
         }
@@ -93,5 +72,26 @@ public class RootFolderFacade {
         if (!rootFolder.getFolderCreator().getUuid().equals(authenticationFacade.getUserFromSecurityContext().getUuid())) {
             throw new AuthorizationException("User does not have authorization for adding other users");
         }
+    }
+
+    private RootFolderModel createSharedFolder(UserModel userModel) {
+        return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
+    }
+
+    private RootFolderModel createPrivateFolder(UserModel userModel) {
+        return createFolderModel(userModel, PRIVATE, Boolean.FALSE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + PRIVATE);
+    }
+
+    private RootFolderModel createFolderModel(UserModel userModel, String folderName, Boolean isShared, String path) {
+        RootFolderModel rootFolderModel = new RootFolderModel();
+        rootFolderModel.setFolderCreator(userModel);
+        rootFolderModel.setUuid(UUID.randomUUID().toString());
+        rootFolderModel.setFileName(folderName);
+        rootFolderModel.setShared(isShared);
+        rootFolderModel.setPath(path);
+        rootFolderModel.setFiles(Collections.emptyList());
+        rootFolderModel.setAllowedUsers(new ArrayList<>());
+        rootFolderModel.getAllowedUsers().add(userModel);
+        return rootFolderModel;
     }
 }
