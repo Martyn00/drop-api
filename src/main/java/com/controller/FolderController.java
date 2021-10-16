@@ -119,12 +119,12 @@ public class FolderController {
     }
 
     @GetMapping(path = "/{parentUuid}/users-without-access")
-    public ResponseEntity<List<PossibleUserDto>> getAllUsersWithoutAcces(@PathVariable String parentUuid) {
+    public ResponseEntity<List<PossibleUserDto>> getAllUsersWithoutAccess(@PathVariable String parentUuid) {
         return new ResponseEntity<>(userFacade.getUsersToBeAdded(parentUuid), HttpStatus.OK);
     }
 
     @GetMapping(path = "/{parentUuid}/users-with-access")
-    public ResponseEntity<List<PossibleUserDto>> getAllUsersWithClient(@PathVariable String parentUuid) {
+    public ResponseEntity<List<PossibleUserDto>> getAllUsersWithAccess(@PathVariable String parentUuid) {
         return new ResponseEntity<>(userFacade.getUsersAlreadyAdded(parentUuid), HttpStatus.OK);
     }
 }
