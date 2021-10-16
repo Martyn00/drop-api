@@ -21,26 +21,36 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class RootFolderFacade {
 
-    private static final String PRIVATE = "private";
-    private static final String SHARED = "shared";
+    private static final String PRIVATE = "My drive";
     private static final String PATH_SEPARATOR = "/";
+    private static final String SHARED = "shared";
     private final RootFolderCreator rootFolderCreator;
     private final AuthenticationFacade authenticationFacade;
     private final RootFolderService rootFolderService;
     private final UserService userService;
 
-    public List<RootFolderModel> createRootFoldersForUser(UserModel userModel) {
-        List<RootFolderModel> rootFolderModels = new ArrayList<>();
+    public RootFolderModel createPrivateRootFolderForUser(UserModel userModel) {
         RootFolderModel privateRootFolder = createPrivateFolder(userModel);
-        RootFolderModel sharedRootFolder = createSharedFolder(userModel);
-        rootFolderModels.add(privateRootFolder);
-        rootFolderModels.add(sharedRootFolder);
-
 //        creates physically the root folders
         rootFolderCreator.createBasicUserFolders(userModel.getUsername());
+        return privateRootFolder;
+    }
 
-//        returns the rootfolders and the rootaccesfolders
-        return rootFolderModels;
+    private RootFolderModel createPrivateFolder(UserModel userModel) {
+        return createFolderModel(userModel, PRIVATE, Boolean.FALSE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + PRIVATE);
+    }
+
+    private RootFolderModel createFolderModel(UserModel userModel, String folderName, Boolean isShared, String path) {
+        RootFolderModel rootFolderModel = new RootFolderModel();
+        rootFolderModel.setFolderCreator(userModel);
+        rootFolderModel.setUuid(UUID.randomUUID().toString());
+        rootFolderModel.setFileName(folderName);
+        rootFolderModel.setShared(isShared);
+        rootFolderModel.setPath(path);
+        rootFolderModel.setFiles(Collections.emptyList());
+        rootFolderModel.setAllowedUsers(new ArrayList<>());
+        rootFolderModel.getAllowedUsers().add(userModel);
+        return rootFolderModel;
     }
 
     public RootFolderModel createSharedFolder(String folderName) {
@@ -56,7 +66,7 @@ public class RootFolderFacade {
                 .stream().map(addedUserDto -> userService.getUserByUuid(addedUserDto.getUuid()))
                 .collect(Collectors.toList());
         RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(folderUuid);
-        users.stream().forEach(user -> user.getAccessibleRootFolders().add(rootFolderModel));
+        users.forEach(user -> user.getAccessibleRootFolders().add(rootFolderModel));
         validateAddition(rootFolderModel, users);
         rootFolderModel.getAllowedUsers().addAll(users);
         rootFolderService.saveRootFolder(rootFolderModel);
@@ -78,20 +88,4 @@ public class RootFolderFacade {
         return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
     }
 
-    private RootFolderModel createPrivateFolder(UserModel userModel) {
-        return createFolderModel(userModel, PRIVATE, Boolean.FALSE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + PRIVATE);
-    }
-
-    private RootFolderModel createFolderModel(UserModel userModel, String folderName, Boolean isShared, String path) {
-        RootFolderModel rootFolderModel = new RootFolderModel();
-        rootFolderModel.setFolderCreator(userModel);
-        rootFolderModel.setUuid(UUID.randomUUID().toString());
-        rootFolderModel.setFileName(folderName);
-        rootFolderModel.setShared(isShared);
-        rootFolderModel.setPath(path);
-        rootFolderModel.setFiles(Collections.emptyList());
-        rootFolderModel.setAllowedUsers(new ArrayList<>());
-        rootFolderModel.getAllowedUsers().add(userModel);
-        return rootFolderModel;
-    }
 }

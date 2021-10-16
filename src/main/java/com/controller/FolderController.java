@@ -57,7 +57,7 @@ public class FolderController {
     }
 
     @PostMapping(value = "/create-shared-folder/{folderName}")
-    public ResponseEntity<String> uploadFile(@PathVariable String folderName) {
+    public ResponseEntity<String> createSharedFolder(@PathVariable String folderName) {
         rootFolderFacade.createSharedFolder(folderName);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }

@@ -59,6 +59,9 @@ public class FolderFacade {
 
     public DirectoriesDto getDirectories(String uuid) {
         List<RootFolderModel> rootFolders = userFacade.getAllRootFoldersByUserUuid(uuid);
+//        changePaths here
+        rootFolders.forEach(rootFolderModel -> rootFolderModel
+                .setPath(fileutil.changePath(rootFolderModel.getPath())));
         return fileMapper.mapRootFolders(rootFolders);
     }
 
@@ -70,6 +73,7 @@ public class FolderFacade {
             contentFiles = rootFolderModel.getFiles();
             contentFileParentDto = modelMapper.map(rootFolderModel, FileMetadataDto.class);
             contentFileParentDto.setFileCreator(rootFolderModel.getFolderCreator().getUsername());
+            contentFileParentDto.setIsShared(rootFolderModel.getShared());
         } catch (ServiceException exception) {
             ContentFileModel contentFileModel = contentFileService.findContentFileModelByUuid(uuid);
             contentFiles = contentFileModel.getSubFiles();
@@ -80,11 +84,15 @@ public class FolderFacade {
             } else {
                 contentFileParentDto.setParentUuid(contentFileModel.getParentFolder().getUuid());
             }
+            contentFileParentDto.setIsShared(false);
         }
         List<FileMetadataDto> contentFileDtos = contentFiles
                 .stream()
                 .map(fileMapper::mapContentFileToFileMetadataDto)
                 .collect(Collectors.toList());
+        contentFileDtos.forEach(contentFile -> contentFile.setPath(fileutil.changePath(contentFile.getPath())));
+        contentFileDtos.forEach(contentFile -> contentFile.setIsShared(false));
+        contentFileParentDto.setPath(fileutil.changePath(contentFileParentDto.getPath()));
         return new ContentDto(contentFileParentDto, contentFileDtos);
     }
 
@@ -148,11 +156,6 @@ public class FolderFacade {
             StringBuilder stringBuilder = createNewPath(pathToRename, index, name);
             contentFileModel.setPath(stringBuilder.toString());
             renamePaths(contentFileModel.getSubFiles(), name, index);
-        });
-
-        contentFileModels.forEach(c -> {
-            System.out.println(c.getPath());
-            printPaths(c.getSubFiles());
         });
     }
 
@@ -227,10 +230,6 @@ public class FolderFacade {
         Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
         newPath.deleteCharAt(newPath.length() - 1);
         return newPath;
-    }
-
-    public void printPaths(List<ContentFileModel> contentFileModels) {
-        contentFileModels.forEach(c -> System.out.println(c.getPath()));
     }
 
     public Boolean checkFileExistsByName(String parentUuid, String fileName) {

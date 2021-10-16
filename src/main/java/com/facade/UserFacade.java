@@ -31,13 +31,18 @@ public class UserFacade {
         UserModel userModel = modelMapper.map(userDto, UserModel.class);
         userModel.setPassword(encoder.encode(userDto.getPassword()));
         userModel.setAccessibleRootFolders(new ArrayList<>());
-        userModel.getAccessibleRootFolders().addAll(rootFolderFacade.createRootFoldersForUser(userModel));
+        userModel.getAccessibleRootFolders().add(rootFolderFacade.createPrivateRootFolderForUser(userModel));
         return modelMapper.map(userService.saveUser(userModel), DisplayUserDto.class);
     }
 
     public LoggedResponseDto createLoggedResponse(String token, AuthenticationDto authenticationDto) {
         UserModel userModel = userService.findUserByUsername(authenticationDto.getUsername());
         DisplayUserDto displayUserDto = modelMapper.map(userModel, DisplayUserDto.class);
+        String rootFolderUuid = userModel.getAccessibleRootFolders()
+                .stream()
+                .filter(rootFolderModel -> !rootFolderModel.getShared())
+                .findFirst().get().getUuid();
+        displayUserDto.setPrivateUuid(rootFolderUuid);
         return new LoggedResponseDto(token, displayUserDto);
     }
 

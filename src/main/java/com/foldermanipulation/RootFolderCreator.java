@@ -59,8 +59,8 @@ public class RootFolderCreator {
     }
 
     private void createPrivateDirectory(String username) {
-        File privateDirectory = new File(BASIC_PATH.concat(SLASH).concat(username).concat(SLASH).concat("private"));
-        checkFolderExists("private", privateDirectory);
+        File privateDirectory = new File(BASIC_PATH.concat(SLASH).concat(username).concat(SLASH).concat("My drive"));
+        checkFolderExists("My drive", privateDirectory);
         privateDirectory.mkdir();
     }
 
