@@ -49,4 +49,7 @@ public class FileMetadataDto {
 
     @JsonProperty(value = "uploadedByUser")
     private String fileCreator;
+
+    @JsonProperty(value = "isShared")
+    private Boolean isShared;
 }

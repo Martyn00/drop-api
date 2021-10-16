@@ -63,6 +63,7 @@ public class FolderFacade {
             contentFiles = rootFolderModel.getFiles();
             contentFileParentDto = modelMapper.map(rootFolderModel, FileMetadataDto.class);
             contentFileParentDto.setFileCreator(rootFolderModel.getFolderCreator().getUsername());
+            contentFileParentDto.setIsShared(rootFolderModel.getShared());
         } catch (ServiceException exception) {
             ContentFileModel contentFileModel = contentFileService.findContentFileModelByUuid(uuid);
             contentFiles = contentFileModel.getSubFiles();
@@ -73,12 +74,14 @@ public class FolderFacade {
             } else {
                 contentFileParentDto.setParentUuid(contentFileModel.getParentFolder().getUuid());
             }
+            contentFileParentDto.setIsShared(false);
         }
         List<FileMetadataDto> contentFileDtos = contentFiles
                 .stream()
                 .map(fileMapper::mapContentFileToFileMetadataDto)
                 .collect(Collectors.toList());
         contentFileDtos.forEach(contentFile -> contentFile.setPath(fileutil.changePath(contentFile.getPath())));
+        contentFileDtos.forEach(contentFile -> contentFile.setIsShared(false));
         contentFileParentDto.setPath(fileutil.changePath(contentFileParentDto.getPath()));
         return new ContentDto(contentFileParentDto, contentFileDtos);
     }
