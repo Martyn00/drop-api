@@ -10,10 +10,10 @@ import com.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -92,13 +92,13 @@ public class UserFacade {
         return userService.getAllUsers()
                 .stream()
                 .filter(user -> uuids.contains(user.getUuid()))
-                .filter(user -> !user.getUsername().equals(getNameFromContext()))
+                .filter(user -> !user.getUsername().equals(getUsernameFromContext()))
                 .map(userModel -> modelMapper.map(userModel, PossibleUserDto.class))
                 .collect(Collectors.toList());
     }
 
-    private String getNameFromContext() {
-        Principal principal = (Principal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return principal.getName();
+    private String getUsernameFromContext() {
+        UserDetails details = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return details.getUsername();
     }
 }
