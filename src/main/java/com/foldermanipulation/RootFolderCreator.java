@@ -25,6 +25,26 @@ public class RootFolderCreator {
         }
     }
 
+    public void createTempDirectory(){
+        File workingFile = new File(System.getProperty("user.dir"));
+        File aboveWorking = new File(workingFile.getParent());
+        try{
+            Files.createDirectories(Paths.get(aboveWorking.getPath().concat("/server/temp")));
+        } catch(IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void createDirectoryAboveWorkingDirectory(String path){
+        File workingFile = new File(System.getProperty("user.dir"));
+        File aboveWorking = new File(workingFile.getParent());
+        try{
+            Files.createDirectories(Paths.get(aboveWorking.getPath().concat(path)));
+        } catch(IOException e){
+            e.printStackTrace();
+        }
+    }
+
     public void createBasicUserFolders(String username) {
         File usernameDirectory = new File(BASIC_PATH.concat(SLASH).concat(username));
         checkFolderExists(username, usernameDirectory);
