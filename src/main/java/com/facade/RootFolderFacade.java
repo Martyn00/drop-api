@@ -21,30 +21,18 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class RootFolderFacade {
 
-    private static final String PRIVATE = "private";
-    private static final String SHARED = "shared";
+    private static final String PRIVATE = "My drive";
     private static final String PATH_SEPARATOR = "/";
     private final RootFolderCreator rootFolderCreator;
     private final AuthenticationFacade authenticationFacade;
     private final RootFolderService rootFolderService;
     private final UserService userService;
 
-    public List<RootFolderModel> createRootFoldersForUser(UserModel userModel) {
-        List<RootFolderModel> rootFolderModels = new ArrayList<>();
+    public RootFolderModel createPrivateRootFolderForUser(UserModel userModel) {
         RootFolderModel privateRootFolder = createPrivateFolder(userModel);
-        RootFolderModel sharedRootFolder = createSharedFolder(userModel);
-        rootFolderModels.add(privateRootFolder);
-        rootFolderModels.add(sharedRootFolder);
-
 //        creates physically the root folders
         rootFolderCreator.createBasicUserFolders(userModel.getUsername());
-
-//        returns the rootfolders and the rootaccesfolders
-        return rootFolderModels;
-    }
-
-    private RootFolderModel createSharedFolder(UserModel userModel) {
-        return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
+        return privateRootFolder;
     }
 
     private RootFolderModel createPrivateFolder(UserModel userModel) {
@@ -77,7 +65,7 @@ public class RootFolderFacade {
                 .stream().map(addedUserDto -> userService.getUserByUuid(addedUserDto.getUuid()))
                 .collect(Collectors.toList());
         RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(folderUuid);
-        users.stream().forEach(user -> user.getAccessibleRootFolders().add(rootFolderModel));
+        users.forEach(user -> user.getAccessibleRootFolders().add(rootFolderModel));
         validateAddition(rootFolderModel, users);
         rootFolderModel.getAllowedUsers().addAll(users);
         rootFolderService.saveRootFolder(rootFolderModel);

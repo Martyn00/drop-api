@@ -9,12 +9,15 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
 public class FileUtil {
 
+    public static final int FIRST_ELEMENT = 2;
     FileTypeService fileTypeService;
 
     public void checkUniqueName(ContentFileModel parentDirectory, String fileName) {
@@ -46,5 +49,11 @@ public class FileUtil {
         return fileTypeService.getAllFileTypes().stream().
                 filter(fileType -> fileType.getTypeName()
                         .equals(fileTypeName)).findFirst().get();
+    }
+
+    public String changePath(String path) {
+        String[] pathParts = path.split("/");
+        String[] modifiedPathParts = Arrays.copyOfRange(pathParts, FIRST_ELEMENT, pathParts.length);
+        return Arrays.stream(modifiedPathParts).map(pathPart -> "/" + pathPart).collect(Collectors.joining());
     }
 }
