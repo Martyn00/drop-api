@@ -91,9 +91,13 @@ public class FolderController {
     @Transactional(timeout = 3000)
     public ResponseEntity<FileSystemResource> downloadFile(@PathVariable String fileUuid) throws IOException {
         File fileToDownload = fileFacade.getFile(fileUuid);
+        if (fileToDownload.isDirectory()) {
+            folderFacade.createTempDirectoryForUser(SecurityContextHolder.getContext().getAuthentication().getName());
+            fileToDownload = folderFacade.zipAll(fileToDownload.getAbsolutePath());
+        }
         System.out.println(fileToDownload.exists());
         FileSystemResource fileSystemResource = new FileSystemResource(fileToDownload);
-
+        System.out.println(SecurityContextHolder.getContext().getAuthentication().getName());
         String mime = Files.probeContentType(fileToDownload.toPath());
         if (mime == null || mime.equals("text/plain") || mime.equals("image/png")) {
             mime = "application/octet-stream";

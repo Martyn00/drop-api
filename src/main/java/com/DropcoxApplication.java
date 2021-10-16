@@ -17,6 +17,8 @@ public class DropcoxApplication {
 
     @EventListener(ApplicationReadyEvent.class)
     public void createServerFolder() {
-        new RootFolderCreator().createServerDirectory();
+        RootFolderCreator rootFolderCreator = new RootFolderCreator();
+        rootFolderCreator.createDirectoryAboveWorkingDirectory("/server");
+        rootFolderCreator.createDirectoryAboveWorkingDirectory("/server/temp");
     }
 }

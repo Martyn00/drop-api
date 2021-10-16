@@ -23,6 +23,7 @@ public class RootFolderFacade {
 
     private static final String PRIVATE = "My drive";
     private static final String PATH_SEPARATOR = "/";
+    private static final String SHARED = "shared";
     private final RootFolderCreator rootFolderCreator;
     private final AuthenticationFacade authenticationFacade;
     private final RootFolderService rootFolderService;
@@ -71,7 +72,7 @@ public class RootFolderFacade {
         rootFolderService.saveRootFolder(rootFolderModel);
     }
 
-    public void validateAddition(RootFolderModel rootFolder, List<UserModel> users) {
+    private void validateAddition(RootFolderModel rootFolder, List<UserModel> users) {
         if (rootFolder.getShared().equals(false)) {
             throw new FacadeException("Folder is private");
         }
@@ -82,4 +83,9 @@ public class RootFolderFacade {
             throw new AuthorizationException("User does not have authorization for adding other users");
         }
     }
+
+    private RootFolderModel createSharedFolder(UserModel userModel) {
+        return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
+    }
+
 }
