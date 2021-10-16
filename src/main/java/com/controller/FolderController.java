@@ -108,6 +108,12 @@ public class FolderController {
                 .headers(responseHeaders)
                 .body(fileSystemResource);
     }
+
+    @PutMapping(value = "/move/{destinationUuid}")
+    public ResponseEntity<Object> moveFile(@RequestBody List<FileToMoveDto> filesUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
+        filesUuid.forEach(fileUuid -> fileFacade.moveFile(fileUuid.getUuid(), destinationUuid, copy));
+        return new ResponseEntity<Object>(HttpStatus.ACCEPTED);
+    }
 }
 
 

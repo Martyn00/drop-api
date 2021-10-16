@@ -25,7 +25,6 @@ public class UserFacade {
     private final RootFolderFacade rootFolderFacade;
     private final ModelMapper modelMapper;
     private final BCryptPasswordEncoder encoder;
-    private final AuthenticationFacade authenticationFacade;
     private final RootFolderService rootFolderService;
 
     public DisplayUserDto createUser(UserDto userDto) {
@@ -68,7 +67,7 @@ public class UserFacade {
     public List<PossibleUserDto> getUsersToBeAdded(String rootFolderUuid) {
         RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(rootFolderUuid);
         List<String> uuids = rootFolderModel.getAllowedUsers()
-                .stream().map(userModel -> userModel.getUuid())
+                .stream().map(UserModel::getUuid)
                 .collect(Collectors.toList());
 
         return userService.getAllUsers()

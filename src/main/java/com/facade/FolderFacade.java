@@ -12,6 +12,7 @@ import com.service.FileTypeService;
 import com.service.RootFolderService;
 import com.service.UserService;
 import com.util.FileMapper;
+import com.util.FileUtil;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 
 @Component
 @AllArgsConstructor
@@ -53,12 +55,11 @@ public class FolderFacade {
 
     private final UserFacade userFacade;
 
-    private final FileFacade fileFacade;
+    private final FileUtil fileutil;
 
     public DirectoriesDto getDirectories(String uuid) {
         List<RootFolderModel> rootFolders = userFacade.getAllRootFoldersByUserUuid(uuid);
-        DirectoriesDto directoriesDto = fileMapper.mapRootFolders(rootFolders);
-        return directoriesDto;
+        return fileMapper.mapRootFolders(rootFolders);
     }
 
     public ContentDto getAllFiles(String uuid) {
@@ -82,7 +83,7 @@ public class FolderFacade {
         }
         List<FileMetadataDto> contentFileDtos = contentFiles
                 .stream()
-                .map(contentFileModel -> fileMapper.mapContentFileToFileMetadataDto(contentFileModel))
+                .map(fileMapper::mapContentFileToFileMetadataDto)
                 .collect(Collectors.toList());
         return new ContentDto(contentFileParentDto, contentFileDtos);
     }
@@ -100,9 +101,8 @@ public class FolderFacade {
         FileTypeModel fileTypeModel = fileTypeService.getFileTypeByName("directory");
         createdFolder.setFileTypeModel(fileTypeModel);
         try {
-            System.out.println("RASAMATI");
             parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
-            fileFacade.checkUniqueName(parentFolder, createFolderDto.getFolderName());
+            fileutil.checkUniqueName(parentFolder, createFolderDto.getFolderName());
             createdFolder.setParentFolder(parentFolder);
             createdFolder.setPath(parentFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(parentFolder.getRootFolder());
@@ -112,7 +112,7 @@ public class FolderFacade {
             contentFileService.save(parentFolder);
         } catch (ServiceException ex) {
             RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
-            fileFacade.checkUniqueName(rootFolder, createFolderDto.getFolderName());
+            fileutil.checkUniqueName(rootFolder, createFolderDto.getFolderName());
             createdFolder.setPath(rootFolder.getPath() + SLASH + createFolderDto.getFolderName());
             createdFolder.setRootFolder(rootFolder);
             createdFolder.setParentFolder(null);
