@@ -127,6 +127,12 @@ public class FolderController {
     public ResponseEntity<List<PossibleUserDto>> getAllUsersWithAccess(@PathVariable String parentUuid) {
         return new ResponseEntity<>(userFacade.getUsersAlreadyAdded(parentUuid), HttpStatus.OK);
     }
+
+    @PutMapping(path = "/delete-user-from-rootfolder/{parentUuid}/{userUuid}")
+    public ResponseEntity<Object> deleteUserFromRootFolder(@PathVariable String parentUuid, @PathVariable String userUuid) {
+        rootFolderFacade.deleteUserFromRootFolder(parentUuid, userUuid);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+    }
 }
 
 
