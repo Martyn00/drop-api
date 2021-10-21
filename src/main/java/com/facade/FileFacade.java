@@ -28,6 +28,7 @@ public class FileFacade {
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
         ContentFileModel contentFileModel = fileUtil.setBasicData(fileName, file.getSize());
         updateParents(contentFileModel, parentUuid);
+        System.out.println(file.getContentType());
         fileService.uploadFile(file, contentFileModel.getPath());
     }
 

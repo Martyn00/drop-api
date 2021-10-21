@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,5 +26,10 @@ public class FileTypeModel {
 
     @Column(name = "is_active")
     private Boolean isActive;
+
+    @OneToMany
+    @JoinTable(name = "file_types_file_mimes",
+            joinColumns = @JoinColumn(name = "file_type_model_id"), inverseJoinColumns = @JoinColumn(name = "file_mime_id"))
+    private List<FileMimeModel> fileMimes;
 
 }
