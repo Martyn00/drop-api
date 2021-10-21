@@ -1,4 +1,4 @@
-package com.controller.dto;
+package com.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
