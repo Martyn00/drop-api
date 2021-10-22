@@ -24,10 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -196,8 +193,41 @@ public class FolderFacade {
         return newZip;
     }
 
-    //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
+    public Boolean checkFileExistsByName(String parentUuid, String fileName) {
+        return contentFileService.checkFileExistsByName(parentUuid, fileName);
+    }
 
+    public List<FileMetadataDto> searchFolder(String folderUuid, String fileName, String fileType, SearchRangeDto searchRangeDto) {
+        if(searchRangeDto.equals(SearchRangeDto.ALL)) {
+            System.out.println("ALL");
+        }
+        String user = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel userModel = userService.findUserByUsername(user);
+        DirectoriesDto directoriesDto = getDirectories(userModel.getUuid());
+        directoriesDto.getDirectories().forEach(d -> System.out.println(d.getFileName()));
+
+        List<DirectoryDto> directories = directoriesDto.getDirectories();
+        DirectoryDto privateDir = directories.stream().filter(d -> d.getFileName().equals("private")).findFirst().get();
+        ContentDto contentDto = getAllFiles(folderUuid);
+        return findAllFiles(fileName, privateDir.getSubfolders());
+//        System.out.println(privateDir.getPath());
+//
+//        return null;
+    }
+
+    private List<FileMetadataDto> findAllFiles(String fileName, List<DirectoryDto> directoryDtos) {
+        List<FileMetadataDto> fileMetadataDtos = getAllFiles(directoryDtos.get(0).getUuid()).getContentFileDtos().stream().filter(f -> f.getFileName().equals(fileName)).collect(Collectors.toList());
+        return fileMetadataDtos;
+    }
+
+    private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
+        splitPath[folderToRenameIndex] = folderName;
+        StringBuilder newPath = new StringBuilder();
+        Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
+        newPath.deleteCharAt(newPath.length() - 1);
+        return newPath;
+    }
+    //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
 //    public File zipDirectory(String path) throws IOException {
 //        File directoryToZip = new File(path);
 //        String[] splitPath = path.split("\\\\");
@@ -221,18 +251,8 @@ public class FolderFacade {
 //                }
 //            }
 //        }
+
 //        return new File(zipPath);
+
 //    }
-
-    private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
-        splitPath[folderToRenameIndex] = folderName;
-        StringBuilder newPath = new StringBuilder();
-        Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
-        newPath.deleteCharAt(newPath.length() - 1);
-        return newPath;
-    }
-
-    public Boolean checkFileExistsByName(String parentUuid, String fileName) {
-        return contentFileService.checkFileExistsByName(parentUuid, fileName);
-    }
 }
