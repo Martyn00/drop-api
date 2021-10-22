@@ -21,30 +21,18 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class RootFolderFacade {
 
-    private static final String PRIVATE = "private";
-    private static final String SHARED = "shared";
+    private static final String PRIVATE = "My drive";
     private static final String PATH_SEPARATOR = "/";
     private final RootFolderCreator rootFolderCreator;
     private final AuthenticationFacade authenticationFacade;
     private final RootFolderService rootFolderService;
     private final UserService userService;
 
-    public List<RootFolderModel> createRootFoldersForUser(UserModel userModel) {
-        List<RootFolderModel> rootFolderModels = new ArrayList<>();
+    public RootFolderModel createPrivateRootFolderForUser(UserModel userModel) {
         RootFolderModel privateRootFolder = createPrivateFolder(userModel);
-        RootFolderModel sharedRootFolder = createSharedFolder(userModel);
-        rootFolderModels.add(privateRootFolder);
-        rootFolderModels.add(sharedRootFolder);
-
 //        creates physically the root folders
         rootFolderCreator.createBasicUserFolders(userModel.getUsername());
-
-//        returns the rootfolders and the rootaccesfolders
-        return rootFolderModels;
-    }
-
-    private RootFolderModel createSharedFolder(UserModel userModel) {
-        return createFolderModel(userModel, SHARED, Boolean.TRUE, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + SHARED);
+        return privateRootFolder;
     }
 
     private RootFolderModel createPrivateFolder(UserModel userModel) {
@@ -60,7 +48,6 @@ public class RootFolderFacade {
         rootFolderModel.setPath(path);
         rootFolderModel.setFiles(Collections.emptyList());
         rootFolderModel.setAllowedUsers(new ArrayList<>());
-        rootFolderModel.getAllowedUsers().add(userModel);
         return rootFolderModel;
     }
 
@@ -69,7 +56,7 @@ public class RootFolderFacade {
         rootFolderCreator.createRootFolder(PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + folderName);
         RootFolderModel rootFolderModel = createFolderModel(userModel, folderName, true, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + folderName);
         userModel.getAccessibleRootFolders().add(rootFolderModel);
-        return rootFolderService.saveRootFolder(rootFolderModel);
+        return rootFolderService.save(rootFolderModel);
     }
 
     public void addUsersToSharedFolder(String folderUuid, List<AddedUserDto> addedUserDtos) {
@@ -77,13 +64,13 @@ public class RootFolderFacade {
                 .stream().map(addedUserDto -> userService.getUserByUuid(addedUserDto.getUuid()))
                 .collect(Collectors.toList());
         RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(folderUuid);
-        users.stream().forEach(user -> user.getAccessibleRootFolders().add(rootFolderModel));
+        users.forEach(user -> user.getAccessibleRootFolders().add(rootFolderModel));
         validateAddition(rootFolderModel, users);
         rootFolderModel.getAllowedUsers().addAll(users);
-        rootFolderService.saveRootFolder(rootFolderModel);
+        rootFolderService.save(rootFolderModel);
     }
 
-    public void validateAddition(RootFolderModel rootFolder, List<UserModel> users) {
+    private void validateAddition(RootFolderModel rootFolder, List<UserModel> users) {
         if (rootFolder.getShared().equals(false)) {
             throw new FacadeException("Folder is private");
         }
@@ -93,5 +80,13 @@ public class RootFolderFacade {
         if (!rootFolder.getFolderCreator().getUuid().equals(authenticationFacade.getUserFromSecurityContext().getUuid())) {
             throw new AuthorizationException("User does not have authorization for adding other users");
         }
+    }
+
+    public void deleteUserFromRootFolder(String parentUuid, String userUuid) {
+        RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(parentUuid);
+        UserModel userModel = userService.getUserByUuid(userUuid);
+        userModel.getAccessibleRootFolders().remove(rootFolderModel);
+        rootFolderModel.getAllowedUsers().remove(userModel);
+        rootFolderService.save(rootFolderModel);
     }
 }

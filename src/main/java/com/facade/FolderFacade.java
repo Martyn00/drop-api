@@ -15,8 +15,14 @@ import com.util.FileMapper;
 import com.util.FileUtil;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.zeroturnaround.zip.ZipUtil;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,10 +30,15 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+
 @Component
 @AllArgsConstructor
 public class FolderFacade {
     public static final String SLASH = "/";
+    public static final String SERVER_DIR = "server";
+    public static final String TEMP_DIR = "temp";
+    public static final String PARENT_DIRECTORY = "..";
+    public static final String ZIP = ".zip";
     private final RootFolderService rootFolderService;
 
     private final ContentFileService contentFileService;
@@ -48,6 +59,9 @@ public class FolderFacade {
 
     public DirectoriesDto getDirectories(String uuid) {
         List<RootFolderModel> rootFolders = userFacade.getAllRootFoldersByUserUuid(uuid);
+//        changePaths here
+        rootFolders.forEach(rootFolderModel -> rootFolderModel
+                .setPath(fileutil.changePath(rootFolderModel.getPath())));
         return fileMapper.mapRootFolders(rootFolders);
     }
 
@@ -59,6 +73,7 @@ public class FolderFacade {
             contentFiles = rootFolderModel.getFiles();
             contentFileParentDto = modelMapper.map(rootFolderModel, FileMetadataDto.class);
             contentFileParentDto.setFileCreator(rootFolderModel.getFolderCreator().getUsername());
+            contentFileParentDto.setIsShared(rootFolderModel.getShared());
         } catch (ServiceException exception) {
             ContentFileModel contentFileModel = contentFileService.findContentFileModelByUuid(uuid);
             contentFiles = contentFileModel.getSubFiles();
@@ -69,11 +84,15 @@ public class FolderFacade {
             } else {
                 contentFileParentDto.setParentUuid(contentFileModel.getParentFolder().getUuid());
             }
+            contentFileParentDto.setIsShared(false);
         }
         List<FileMetadataDto> contentFileDtos = contentFiles
                 .stream()
                 .map(fileMapper::mapContentFileToFileMetadataDto)
                 .collect(Collectors.toList());
+        contentFileDtos.forEach(contentFile -> contentFile.setPath(fileutil.changePath(contentFile.getPath())));
+        contentFileDtos.forEach(contentFile -> contentFile.setIsShared(false));
+        contentFileParentDto.setPath(fileutil.changePath(contentFileParentDto.getPath()));
         return new ContentDto(contentFileParentDto, contentFileDtos);
     }
 
@@ -108,7 +127,7 @@ public class FolderFacade {
             rootFolder.getFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
             contentFileService.save(createdFolder);
-            rootFolderService.saveRootFolder(rootFolder);
+            rootFolderService.save(rootFolder);
         }
         return fileMapper.mapContentFileToDirectoryDto(createdFolder);
     }
@@ -138,11 +157,6 @@ public class FolderFacade {
             contentFileModel.setPath(stringBuilder.toString());
             renamePaths(contentFileModel.getSubFiles(), name, index);
         });
-
-        contentFileModels.forEach(c -> {
-            System.out.println(c.getPath());
-            printPaths(c.getSubFiles());
-        });
     }
 
     public void deleteFileByUuid(String uuid) {
@@ -154,11 +168,61 @@ public class FolderFacade {
         } else {
             RootFolderModel rootFolderModel = fileToDelete.getRootFolder();
             rootFolderModel.getFiles().remove(fileToDelete);
-            rootFolderService.saveRootFolder(rootFolderModel);
+            rootFolderService.save(rootFolderModel);
         }
         contentFileService.deleteFileByUuid(uuid);
         folderCreator.deleteFolder(fileToDelete.getPath());
     }
+
+    public void createTempDirectoryForUser(String user) {
+        File workingFile = new File(System.getProperty("user.dir"));
+        File aboveWorking = new File(workingFile.getParent());
+        try {
+            Files.createDirectories(Paths.get(aboveWorking.getPath() + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH + user));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public File zipAll(String path, String directoryName) {
+        File directoryToZip = new File(path);
+        String[] splitPath = path.split("\\\\");
+        String fileName = splitPath[splitPath.length - 1];
+        String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
+                concat(SecurityContextHolder.getContext().getAuthentication().getName())
+                .concat(SLASH).concat(directoryName).concat(ZIP);
+        File newZip = new File(zipPath);
+        ZipUtil.pack(directoryToZip, newZip);
+        return newZip;
+    }
+
+    //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
+
+//    public File zipDirectory(String path) throws IOException {
+//        File directoryToZip = new File(path);
+//        String[] splitPath = path.split("\\\\");
+//        String fileName = splitPath[splitPath.length - 1];
+//        String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
+//                concat(SecurityContextHolder.getContext().getAuthentication().getName())
+//                .concat(SLASH).concat(fileName).concat(ZIP);
+//        try (FileOutputStream fileOutputStream = new FileOutputStream(zipPath);
+//             ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream)) {
+//            File[] files = directoryToZip.listFiles();
+//            Objects.requireNonNull(files);
+//            for (File file : files) {
+//                try (FileInputStream fileInputStream = new FileInputStream(file)) {
+//                    ZipEntry zipEntry = new ZipEntry(file.getName());
+//                    zipOutputStream.putNextEntry(zipEntry);
+//                    int length;
+//                    byte[] bytes = new byte[1024];
+//                    while ((length = fileInputStream.read(bytes)) >= 0) {
+//                        zipOutputStream.write(bytes, 0, length);
+//                    }
+//                }
+//            }
+//        }
+//        return new File(zipPath);
+//    }
 
     private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
         splitPath[folderToRenameIndex] = folderName;
@@ -166,10 +230,6 @@ public class FolderFacade {
         Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
         newPath.deleteCharAt(newPath.length() - 1);
         return newPath;
-    }
-
-    public void printPaths(List<ContentFileModel> contentFileModels) {
-        contentFileModels.forEach(c -> System.out.println(c.getPath()));
     }
 
     public Boolean checkFileExistsByName(String parentUuid, String fileName) {

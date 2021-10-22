@@ -9,6 +9,8 @@ import com.service.RootFolderService;
 import com.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -31,13 +33,19 @@ public class UserFacade {
         UserModel userModel = modelMapper.map(userDto, UserModel.class);
         userModel.setPassword(encoder.encode(userDto.getPassword()));
         userModel.setAccessibleRootFolders(new ArrayList<>());
-        userModel.getAccessibleRootFolders().addAll(rootFolderFacade.createRootFoldersForUser(userModel));
+        userModel.getAccessibleRootFolders().add(rootFolderFacade.createPrivateRootFolderForUser(userModel));
         return modelMapper.map(userService.saveUser(userModel), DisplayUserDto.class);
     }
 
     public LoggedResponseDto createLoggedResponse(String token, AuthenticationDto authenticationDto) {
         UserModel userModel = userService.findUserByUsername(authenticationDto.getUsername());
         DisplayUserDto displayUserDto = modelMapper.map(userModel, DisplayUserDto.class);
+        String rootFolderUuid = userModel.getAccessibleRootFolders()
+                .stream()
+                .filter(rootFolderModel -> !rootFolderModel.getShared())
+                .findFirst().get().getUuid();
+        System.out.println(rootFolderUuid);
+        displayUserDto.setPrivateUuid(rootFolderUuid);
         return new LoggedResponseDto(token, displayUserDto);
     }
 
@@ -77,5 +85,21 @@ public class UserFacade {
                 .collect(Collectors.toList());
     }
 
+    public List<PossibleUserDto> getUsersAlreadyAdded(String rootFolderUuid) {
+        RootFolderModel rootFolderModel = rootFolderService.getRootFolderByUuid(rootFolderUuid);
+        List<String> uuids = rootFolderModel.getAllowedUsers()
+                .stream().map(UserModel::getUuid)
+                .collect(Collectors.toList());
+        return userService.getAllUsers()
+                .stream()
+                .filter(user -> uuids.contains(user.getUuid()))
+                .filter(user -> !user.getUsername().equals(getUsernameFromContext()))
+                .map(userModel -> modelMapper.map(userModel, PossibleUserDto.class))
+                .collect(Collectors.toList());
+    }
 
+    private String getUsernameFromContext() {
+        UserDetails details = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return details.getUsername();
+    }
 }

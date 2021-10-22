@@ -4,6 +4,7 @@ import com.controller.dto.*;
 import com.facade.FileFacade;
 import com.facade.FolderFacade;
 import com.facade.RootFolderFacade;
+import com.facade.UserFacade;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +34,8 @@ public class FolderController {
 
     private final RootFolderFacade rootFolderFacade;
 
+    private final UserFacade userFacade;
+
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<DirectoriesDto> getAllDirectories(@PathVariable String uuid) {
         return new ResponseEntity<>(folderFacade.getDirectories(uuid), HttpStatus.OK);
@@ -57,7 +60,7 @@ public class FolderController {
     }
 
     @PostMapping(value = "/create-shared-folder/{folderName}")
-    public ResponseEntity<String> uploadFile(@PathVariable String folderName) {
+    public ResponseEntity<String> createSharedFolder(@PathVariable String folderName) {
         rootFolderFacade.createSharedFolder(folderName);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -88,9 +91,13 @@ public class FolderController {
     @Transactional(timeout = 3000)
     public ResponseEntity<FileSystemResource> downloadFile(@PathVariable String fileUuid) throws IOException {
         File fileToDownload = fileFacade.getFile(fileUuid);
+        if (fileToDownload.isDirectory()) {
+            folderFacade.createTempDirectoryForUser(SecurityContextHolder.getContext().getAuthentication().getName());
+            fileToDownload = folderFacade.zipAll(fileToDownload.getPath(), fileToDownload.getName());
+        }
         System.out.println(fileToDownload.exists());
         FileSystemResource fileSystemResource = new FileSystemResource(fileToDownload);
-
+        System.out.println(SecurityContextHolder.getContext().getAuthentication().getName());
         String mime = Files.probeContentType(fileToDownload.toPath());
         if (mime == null || mime.equals("text/plain") || mime.equals("image/png")) {
             mime = "application/octet-stream";
@@ -105,9 +112,25 @@ public class FolderController {
                 .body(fileSystemResource);
     }
 
-    @PutMapping(value = "/move/{fileUuid}/{destinationUuid}")
-    public ResponseEntity<String> moveFile(@PathVariable String fileUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
-        fileFacade.moveFile(fileUuid, destinationUuid, copy);
+    @PutMapping(value = "/move/{destinationUuid}")
+    public ResponseEntity<Object> moveFile(@RequestBody List<FileToMoveDto> filesUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
+        filesUuid.forEach(fileUuid -> fileFacade.moveFile(fileUuid.getUuid(), destinationUuid, copy));
+        return new ResponseEntity<Object>(HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping(path = "/{parentUuid}/users-without-access")
+    public ResponseEntity<List<PossibleUserDto>> getAllUsersWithoutAccess(@PathVariable String parentUuid) {
+        return new ResponseEntity<>(userFacade.getUsersToBeAdded(parentUuid), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/{parentUuid}/users-with-access")
+    public ResponseEntity<List<PossibleUserDto>> getAllUsersWithAccess(@PathVariable String parentUuid) {
+        return new ResponseEntity<>(userFacade.getUsersAlreadyAdded(parentUuid), HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/delete-user-from-rootfolder/{parentUuid}/{userUuid}")
+    public ResponseEntity<Object> deleteUserFromRootFolder(@PathVariable String parentUuid, @PathVariable String userUuid) {
+        rootFolderFacade.deleteUserFromRootFolder(parentUuid, userUuid);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 }

@@ -4,12 +4,10 @@ import com.exception.ServiceException;
 import com.foldermanipulation.FileService;
 import com.persistence.model.ContentFileModel;
 import com.service.ContentFileService;
-import com.service.FileTypeService;
 import com.service.RootFolderService;
 import com.util.FilePathChanger;
 import com.util.FileUtil;
 import lombok.AllArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,22 +19,16 @@ public class FileFacade {
     private final FileService fileService;
 
     private final ContentFileService contentFileService;
-
     private final RootFolderService rootFolderService;
 
-    private final FileTypeService fileTypeService;
-
     private final FileUtil fileUtil;
-
-    private final FolderFacade folderFacade;
-
-    private final ModelMapper modelMapper;
 
     private final FilePathChanger filePathChanger;
 
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
-        ContentFileModel contentFileModel = fileUtil.setBasicData(fileName, file.getSize());
+        ContentFileModel contentFileModel = fileUtil.setBasicData(fileName, file.getSize(), file.getContentType());
         updateParents(contentFileModel, parentUuid);
+        System.out.println(file.getContentType());
         fileService.uploadFile(file, contentFileModel.getPath());
     }
 
@@ -50,7 +42,7 @@ public class FileFacade {
             contentFileModel.setRootFolder(parentFolder.getRootFolder());
             contentFileModel.setPath(parentFolder.getPath() + "/" + contentFileModel.getFileName());
             contentFileModel.setFileCreator(parentFolder.getFileCreator());
-            contentFileService.save(parentFolder);
+            contentFileService.save(contentFileModel);
         } catch (ServiceException ex) {
             var rootFolder = rootFolderService.getRootFolderByUuid(parentUuid);
             fileUtil.checkUniqueName(rootFolder, contentFileModel.getFileName());
@@ -58,9 +50,8 @@ public class FileFacade {
             contentFileModel.setRootFolder(rootFolder);
             contentFileModel.setPath(rootFolder.getPath() + "/" + contentFileModel.getFileName());
             contentFileModel.setFileCreator(rootFolder.getFolderCreator());
-            rootFolderService.saveRootFolder(rootFolder);
+            contentFileService.save(contentFileModel);
         }
-
     }
 
     public File getFile(String uuid) {
@@ -90,3 +81,4 @@ public class FileFacade {
         }
     }
 }
+

@@ -38,5 +38,7 @@ public class RootFolderModel {
     private List<ContentFileModel> files;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "root_folders_allowed_users",
+            joinColumns = @JoinColumn(name = "root_folder_model_id"), inverseJoinColumns = @JoinColumn(name = "allowed_users_id"))
     private List<UserModel> allowedUsers;
 }
