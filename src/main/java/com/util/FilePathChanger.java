@@ -38,7 +38,7 @@ public class FilePathChanger {
             newFileModel.setRootFolder(rootFolder);
             rootFolder.getFiles().add(newFileModel);
             updateChildData(newFileModel, rootFolder);
-            rootFolderService.saveRootFolder(rootFolder);
+            rootFolderService.save(rootFolder);
         }
     }
 
@@ -79,7 +79,7 @@ public class FilePathChanger {
     }
 
     private ContentFileModel copyAllFiles(ContentFileModel fileModel, RootFolderModel rootFolder, ContentFileModel parentFolder) {
-        var newContentFile = fileUtil.setBasicData(fileModel.getFileName(), fileModel.getSize());
+        var newContentFile = fileUtil.setBasicData(fileModel.getFileName(), fileModel.getSize(), fileModel.getFileTypeModel());
         newContentFile.setParentFolder(parentFolder);
         newContentFile.setRootFolder(rootFolder);
         newContentFile.setFileCreator(fileModel.getFileCreator());

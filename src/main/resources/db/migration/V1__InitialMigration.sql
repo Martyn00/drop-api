@@ -74,11 +74,7 @@ create table users
     uuid      varchar(255),
     primary key (id)
 );
-create table users_accessible_root_folders
-(
-    user_model_id              bigint not null,
-    accessible_root_folders_id bigint not null
-);
+
 alter table file_types
     add constraint UK_orlvtgw8yhalek5yim4prvgyo unique (type_name);
 alter table file_types_file_mimes
@@ -117,7 +113,3 @@ alter table root_folders_files
     add constraint FKqutfnkvaom3ql034c56o75n5k foreign key (files_id) references folders_content (id);
 alter table root_folders_files
     add constraint FKhcpvinmsqnqk8t3a639egic8j foreign key (root_folder_model_id) references root_folders (id);
-alter table users_accessible_root_folders
-    add constraint FKs382punsj84ll2nx0xh03ndoy foreign key (accessible_root_folders_id) references root_folders (id);
-alter table users_accessible_root_folders
-    add constraint FKslk6a84ntsm7hok3b8hrjku9 foreign key (user_model_id) references users (id);

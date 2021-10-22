@@ -34,14 +34,25 @@ public class FileUtil {
         }
     }
 
-    public ContentFileModel setBasicData(String fileName, double size) {
+    public ContentFileModel setBasicData(String fileName, double size, String fileMime) {
         ContentFileModel contentFileModel = new ContentFileModel();
         contentFileModel.setUuid(UUID.randomUUID().toString());
         contentFileModel.setAddedDate(ZonedDateTime.now());
         contentFileModel.setLastModifiedDate(ZonedDateTime.now());
         contentFileModel.setSize(size);
         contentFileModel.setFileName(fileName);
-        contentFileModel.setFileTypeModel(getFileType("text"));
+        contentFileModel.setFileTypeModel(fileTypeService.findFileTypeByFileMime(fileMime));
+        return contentFileModel;
+    }
+
+    public ContentFileModel setBasicData(String fileName, double size, FileTypeModel fileTypeModel) {
+        ContentFileModel contentFileModel = new ContentFileModel();
+        contentFileModel.setUuid(UUID.randomUUID().toString());
+        contentFileModel.setAddedDate(ZonedDateTime.now());
+        contentFileModel.setLastModifiedDate(ZonedDateTime.now());
+        contentFileModel.setSize(size);
+        contentFileModel.setFileName(fileName);
+        contentFileModel.setFileTypeModel(fileTypeModel);
         return contentFileModel;
     }
 

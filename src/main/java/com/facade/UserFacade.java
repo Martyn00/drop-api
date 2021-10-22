@@ -44,6 +44,7 @@ public class UserFacade {
                 .stream()
                 .filter(rootFolderModel -> !rootFolderModel.getShared())
                 .findFirst().get().getUuid();
+        System.out.println(rootFolderUuid);
         displayUserDto.setPrivateUuid(rootFolderUuid);
         return new LoggedResponseDto(token, displayUserDto);
     }

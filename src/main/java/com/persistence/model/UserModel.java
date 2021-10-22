@@ -40,8 +40,8 @@ public class UserModel {
     private String lastName;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    @JoinTable(name = "root_folders_allowed_users",
-//            inverseJoinColumns = @JoinColumn(name = "root_folder_model_id"), joinColumns = @JoinColumn(name = "allowed_users_id"))
+    @JoinTable(name = "root_folders_allowed_users",
+            inverseJoinColumns = @JoinColumn(name = "root_folder_model_id"), joinColumns = @JoinColumn(name = "allowed_users_id"))
     private List<RootFolderModel> accessibleRootFolders;
 
 }
