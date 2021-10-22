@@ -1,10 +1,21 @@
-create table file_types
+Create table file_mimes
 (
     id        bigint not null,
-    is_active bit,
-    type_name varchar(255),
-    uuid      varchar(255),
+    file_mime varchar(255),
     primary key (id)
+);
+CREATE TABLE file_types
+(
+    `id`        bigint NOT NULL,
+    `is_active` bit(1)       DEFAULT NULL,
+    `type_name` varchar(255) DEFAULT NULL,
+    `uuid`      varchar(255) DEFAULT NULL,
+    PRIMARY KEY (`id`)
+);
+create table file_types_file_mimes
+(
+    file_type_model_id bigint not null,
+    file_mime_id       bigint not null
 );
 create table folders_content
 (
@@ -63,13 +74,15 @@ create table users
     uuid      varchar(255),
     primary key (id)
 );
-create table users_accessible_root_folders
-(
-    user_model_id              bigint not null,
-    accessible_root_folders_id bigint not null
-);
+
 alter table file_types
     add constraint UK_orlvtgw8yhalek5yim4prvgyo unique (type_name);
+alter table file_types_file_mimes
+    add constraint UK_9ey7tf4lg0ehgx8hglt5bv3q7 unique (file_mime_id);
+alter table file_types_file_mimes
+    add constraint FKk6rbk0cj8os7ign75qkvnpp4h foreign key (file_mime_id) references file_mimes (id);
+alter table file_types_file_mimes
+    add constraint FK9s5mi2nf8oxmbx5puay7qg0gd foreign key (file_type_model_id) references file_types (id);
 alter table folders_content_sub_files
     add constraint UK_f4t7tv17iammr8up6r8m71dnm unique (sub_files_id);
 alter table root_folders_files
@@ -100,7 +113,3 @@ alter table root_folders_files
     add constraint FKqutfnkvaom3ql034c56o75n5k foreign key (files_id) references folders_content (id);
 alter table root_folders_files
     add constraint FKhcpvinmsqnqk8t3a639egic8j foreign key (root_folder_model_id) references root_folders (id);
-alter table users_accessible_root_folders
-    add constraint FKs382punsj84ll2nx0xh03ndoy foreign key (accessible_root_folders_id) references root_folders (id);
-alter table users_accessible_root_folders
-    add constraint FKslk6a84ntsm7hok3b8hrjku9 foreign key (user_model_id) references users (id);

@@ -124,7 +124,7 @@ public class FolderFacade {
             rootFolder.getFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
             contentFileService.save(createdFolder);
-            rootFolderService.saveRootFolder(rootFolder);
+            rootFolderService.save(rootFolder);
         }
         return fileMapper.mapContentFileToDirectoryDto(createdFolder);
     }
@@ -165,7 +165,7 @@ public class FolderFacade {
         } else {
             RootFolderModel rootFolderModel = fileToDelete.getRootFolder();
             rootFolderModel.getFiles().remove(fileToDelete);
-            rootFolderService.saveRootFolder(rootFolderModel);
+            rootFolderService.save(rootFolderModel);
         }
         contentFileService.deleteFileByUuid(uuid);
         folderCreator.deleteFolder(fileToDelete.getPath());

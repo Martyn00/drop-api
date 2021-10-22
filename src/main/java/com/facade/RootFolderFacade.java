@@ -23,7 +23,6 @@ public class RootFolderFacade {
 
     private static final String PRIVATE = "My drive";
     private static final String PATH_SEPARATOR = "/";
-    private static final String SHARED = "shared";
     private final RootFolderCreator rootFolderCreator;
     private final AuthenticationFacade authenticationFacade;
     private final RootFolderService rootFolderService;
@@ -49,7 +48,6 @@ public class RootFolderFacade {
         rootFolderModel.setPath(path);
         rootFolderModel.setFiles(Collections.emptyList());
         rootFolderModel.setAllowedUsers(new ArrayList<>());
-        rootFolderModel.getAllowedUsers().add(userModel);
         return rootFolderModel;
     }
 
@@ -58,7 +56,7 @@ public class RootFolderFacade {
         rootFolderCreator.createRootFolder(PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + folderName);
         RootFolderModel rootFolderModel = createFolderModel(userModel, folderName, true, PATH_SEPARATOR + userModel.getUsername() + PATH_SEPARATOR + folderName);
         userModel.getAccessibleRootFolders().add(rootFolderModel);
-        return rootFolderService.saveRootFolder(rootFolderModel);
+        return rootFolderService.save(rootFolderModel);
     }
 
     public void addUsersToSharedFolder(String folderUuid, List<AddedUserDto> addedUserDtos) {
@@ -69,7 +67,7 @@ public class RootFolderFacade {
         users.forEach(user -> user.getAccessibleRootFolders().add(rootFolderModel));
         validateAddition(rootFolderModel, users);
         rootFolderModel.getAllowedUsers().addAll(users);
-        rootFolderService.saveRootFolder(rootFolderModel);
+        rootFolderService.save(rootFolderModel);
     }
 
     private void validateAddition(RootFolderModel rootFolder, List<UserModel> users) {
@@ -89,6 +87,6 @@ public class RootFolderFacade {
         UserModel userModel = userService.getUserByUuid(userUuid);
         userModel.getAccessibleRootFolders().remove(rootFolderModel);
         rootFolderModel.getAllowedUsers().remove(userModel);
-        rootFolderService.saveRootFolder(rootFolderModel);
+        rootFolderService.save(rootFolderModel);
     }
 }
