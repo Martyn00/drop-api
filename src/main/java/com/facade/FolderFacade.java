@@ -117,7 +117,6 @@ public class FolderFacade {
             parentFolder.getSubFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
             contentFileService.save(createdFolder);
-            contentFileService.save(parentFolder);
         } catch (ServiceException ex) {
             RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
             fileutil.checkUniqueName(rootFolder, createFolderDto.getFolderName());
@@ -127,7 +126,6 @@ public class FolderFacade {
             rootFolder.getFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
             contentFileService.save(createdFolder);
-            rootFolderService.saveRootFolder(rootFolder);
         }
         return fileMapper.mapContentFileToDirectoryDto(createdFolder);
     }
@@ -168,7 +166,7 @@ public class FolderFacade {
         } else {
             RootFolderModel rootFolderModel = fileToDelete.getRootFolder();
             rootFolderModel.getFiles().remove(fileToDelete);
-            rootFolderService.saveRootFolder(rootFolderModel);
+            rootFolderService.save(rootFolderModel);
         }
         contentFileService.deleteFileByUuid(uuid);
         folderCreator.deleteFolder(fileToDelete.getPath());
