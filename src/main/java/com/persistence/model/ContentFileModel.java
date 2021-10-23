@@ -51,4 +51,7 @@ public class ContentFileModel {
 
     @ManyToOne(fetch = FetchType.EAGER)
     private ContentFileModel parentFolder;
+
+    @Column(name = "fileMime")
+    private String fileMime;
 }
