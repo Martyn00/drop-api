@@ -3,13 +3,17 @@ package com.controller;
 import com.controller.dto.MediaDto;
 import com.facade.MediaFacade;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,7 +22,7 @@ import java.util.Optional;
 @RestController
 @AllArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
-@RequestMapping(value = "/media")
+//@RequestMapping(value = "/media")
 public class MediaController {
     public static final String AUDIO = "audio";
     private static final int BYTE_RANGE = 128; // increase the byterange from here
@@ -31,14 +35,19 @@ public class MediaController {
     private final MediaFacade mediaFacade;
 
     @GetMapping(value = "/image/{fileUuid}")
-    public ResponseEntity<InputStreamResource> getImage(@PathVariable String fileUuid) throws FileNotFoundException {
+    public ResponseEntity<Resource> getImage(@PathVariable String fileUuid) throws IOException {
         MediaDto imageDto = mediaFacade.getMediaDto(fileUuid, IMAGE);
         File image = new File(imageDto.getPath());
-        InputStream inputStream = new FileInputStream(image);
+//        InputStream inputStream = new FileInputStream(image);
+//        return ResponseEntity
+//                .ok()
+//                .contentType(imageDto.getMediaType())
+//                .body(new InputStreamResource(inputStream));
+        final ByteArrayResource inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(image.getPath())));
         return ResponseEntity
-                .ok()
-                .contentType(imageDto.getMediaType())
-                .body(new InputStreamResource(inputStream));
+                .status(HttpStatus.OK)
+                .contentLength(inputStream.contentLength())
+                .body(inputStream);
     }
 
     @GetMapping(value = "/video/{filePath}")
