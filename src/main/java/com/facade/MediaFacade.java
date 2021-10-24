@@ -5,16 +5,19 @@ import com.exception.MediaException;
 import com.persistence.model.ContentFileModel;
 import com.service.ContentFileService;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-@AllArgsConstructor
 @Component
+@AllArgsConstructor
 public class MediaFacade {
-    private final ContentFileService contentFileService;
+
     @Value("${user.files}")
-    private String BASIC_PATH;
+    private static String BASIC_PATH;
+    @Autowired
+    private final ContentFileService contentFileService;
 
     public MediaDto getMediaDto(String fileUuid, String fileType) {
         ContentFileModel contentFileModel = contentFileService.getFileByUuid(fileUuid);

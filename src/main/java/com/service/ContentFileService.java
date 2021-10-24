@@ -4,15 +4,19 @@ import com.exception.ServiceException;
 import com.persistence.model.ContentFileModel;
 import com.persistence.repository.ContentFileRepository;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 
-@Service
+
 @AllArgsConstructor
+@NoArgsConstructor
+@Service
 public class ContentFileService {
+
     ContentFileRepository contentFileRepository;
 
     public ContentFileModel save(ContentFileModel fileModel) {
