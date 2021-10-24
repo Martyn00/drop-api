@@ -22,7 +22,7 @@ import java.util.Optional;
 @RestController
 @AllArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
-//@RequestMapping(value = "/media")
+@RequestMapping(value = "/media")
 public class MediaController {
     public static final String AUDIO = "audio";
     private static final int BYTE_RANGE = 128; // increase the byterange from here
