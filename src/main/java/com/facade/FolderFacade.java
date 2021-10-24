@@ -24,10 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -39,6 +36,7 @@ public class FolderFacade {
     public static final String TEMP_DIR = "temp";
     public static final String PARENT_DIRECTORY = "..";
     public static final String ZIP = ".zip";
+    public static final String DIRECTORY_FILE_TYPE = "directory";
     private final RootFolderService rootFolderService;
 
     private final ContentFileService contentFileService;
@@ -106,7 +104,7 @@ public class FolderFacade {
         createdFolder.setSubFiles(Collections.emptyList());
         createdFolder.setUuid(UUID.randomUUID().toString());
         createdFolder.setLastModifiedDate(ZonedDateTime.now());
-        FileTypeModel fileTypeModel = fileTypeService.getFileTypeByName("directory");
+        FileTypeModel fileTypeModel = fileTypeService.getFileTypeByName(DIRECTORY_FILE_TYPE);
         createdFolder.setFileTypeModel(fileTypeModel);
         try {
             parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
@@ -185,7 +183,6 @@ public class FolderFacade {
     public File zipAll(String path, String directoryName) {
         File directoryToZip = new File(path);
         String[] splitPath = path.split("\\\\");
-        String fileName = splitPath[splitPath.length - 1];
         String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
                 concat(SecurityContextHolder.getContext().getAuthentication().getName())
                 .concat(SLASH).concat(directoryName).concat(ZIP);
@@ -194,8 +191,90 @@ public class FolderFacade {
         return newZip;
     }
 
-    //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
+    public Boolean checkFileExistsByName(String parentUuid, String fileName) {
+        return contentFileService.checkFileExistsByName(parentUuid, fileName);
+    }
 
+    public List<FileMetadataDto> searchFolder(String folderUuid, String fileName, String fileType, SearchRangeDto searchRangeDto) {
+        if (searchRangeDto.equals(SearchRangeDto.ALL)) {
+            System.out.println("ALL");
+        }
+        String user = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel userModel = userService.findUserByUsername(user);
+        List<FileMetadataDto> fileMetadataDtos = new ArrayList<>();
+
+        if (searchRangeDto.equals(SearchRangeDto.ME)) {
+            searchPrivateDrive(folderUuid, fileName, fileType, userModel, fileMetadataDtos);
+        } else if (searchRangeDto.equals(SearchRangeDto.OTHERS)) {
+            searchSharedDrives(folderUuid, fileName, fileType, userModel, fileMetadataDtos);
+        } else {
+            List<RootFolderModel> accessibleRootFolders = userModel.getAccessibleRootFolders();
+            searchInSubFolder(fileName, fileType, accessibleRootFolders, fileMetadataDtos);
+        }
+        return fileMetadataDtos;
+    }
+
+    private void searchSharedDrives(String folderUuid, String fileName, String fileType, UserModel userModel, List<FileMetadataDto> fileMetadataDtos) {
+        try {
+            searchInSubFolder(folderUuid, fileName, fileType, fileMetadataDtos);
+        } catch (ServiceException serviceException) {
+            List<RootFolderModel> sharedDrives = userModel.getAccessibleRootFolders()
+                    .stream()
+                    .filter(rootFolderModel -> rootFolderModel.getShared().equals(true)).collect(Collectors.toList());
+            sharedDrives.forEach(sharedDrive -> findAllFiles(fileName, fileType, sharedDrive.getFiles(), fileMetadataDtos));
+        }
+    }
+
+    private void searchPrivateDrive(String folderUuid, String fileName, String fileType, UserModel userModel, List<FileMetadataDto> fileMetadataDtos) {
+        try {
+            searchInSubFolder(folderUuid, fileName, fileType, fileMetadataDtos);
+        } catch (ServiceException serviceException) {
+            RootFolderModel myDrive = userModel.getAccessibleRootFolders()
+                    .stream()
+                    .filter(rootFolderModel -> rootFolderModel.getShared().equals(false)).findFirst().get();
+            findAllFiles(fileName, fileType, myDrive.getFiles(), fileMetadataDtos);
+        }
+    }
+
+    private void searchInSubFolder(String fileName, String fileType, List<RootFolderModel> rootFolderModels, List<FileMetadataDto> fileMetadataDtos) {
+        rootFolderModels.forEach(rootFolderModel -> findAllFiles(fileName, fileType, rootFolderModel.getFiles(), fileMetadataDtos));
+    }
+
+    private void searchInSubFolder(String folderUuid, String fileName, String fileType, List<FileMetadataDto> fileMetadataDtos) {
+        ContentFileModel contentFileModel = contentFileService.findContentFileModelByUuid(folderUuid);
+        findAllFiles(fileName, fileType, contentFileModel.getSubFiles(), fileMetadataDtos);
+    }
+
+    private void findAllFiles(String fileName, String fileType, List<ContentFileModel> directoryDtos, List<FileMetadataDto> fileMetadataDtos) {
+        if (fileType == null) {
+            directoryDtos.forEach(fileModel -> {
+                if (fileModel.getFileName().startsWith(fileName)) {
+                    fileMetadataDtos.add(fileMapper.mapContentFileToFileMetadataDto(fileModel));
+                }
+                if (fileModel.getFileTypeModel().getTypeName().equals("directory")) {
+                    findAllFiles(fileName, fileType, fileModel.getSubFiles(), fileMetadataDtos);
+                }
+            });
+        } else {
+            directoryDtos.forEach(fileModel -> {
+                if (fileModel.getFileName().startsWith(fileName) && fileType.equals(fileModel.getFileTypeModel().getTypeName())) {
+                    fileMetadataDtos.add(fileMapper.mapContentFileToFileMetadataDto(fileModel));
+                }
+                if (fileModel.getFileTypeModel().getTypeName().equals("directory")) {
+                    findAllFiles(fileName, fileType, fileModel.getSubFiles(), fileMetadataDtos);
+                }
+            });
+        }
+    }
+
+    private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
+        splitPath[folderToRenameIndex] = folderName;
+        StringBuilder newPath = new StringBuilder();
+        Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
+        newPath.deleteCharAt(newPath.length() - 1);
+        return newPath;
+    }
+    //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
 //    public File zipDirectory(String path) throws IOException {
 //        File directoryToZip = new File(path);
 //        String[] splitPath = path.split("\\\\");
@@ -219,18 +298,8 @@ public class FolderFacade {
 //                }
 //            }
 //        }
+
 //        return new File(zipPath);
+
 //    }
-
-    private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
-        splitPath[folderToRenameIndex] = folderName;
-        StringBuilder newPath = new StringBuilder();
-        Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
-        newPath.deleteCharAt(newPath.length() - 1);
-        return newPath;
-    }
-
-    public Boolean checkFileExistsByName(String parentUuid, String fileName) {
-        return contentFileService.checkFileExistsByName(parentUuid, fileName);
-    }
 }
