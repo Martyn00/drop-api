@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.io.*;
@@ -21,6 +18,7 @@ import java.util.Optional;
 
 @RestController(value = "media")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class MediaController {
     public static final String AUDIO = "audio";
     private static final int BYTE_RANGE = 128; // increase the byterange from here
