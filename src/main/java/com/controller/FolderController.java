@@ -35,6 +35,7 @@ public class FolderController {
     private final RootFolderFacade rootFolderFacade;
 
     private final UserFacade userFacade;
+    WebSocketService webSocketService;
 
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<DirectoriesDto> getAllDirectories(@PathVariable String uuid) {
@@ -50,6 +51,8 @@ public class FolderController {
 @PostMapping
 public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto createFolderDto) {
     String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    webSocketService.notifySubscribersToTopic("mesaj", "topic");
+
     return new ResponseEntity<>(folderFacade.
             createFolder(createFolderDto, username), HttpStatus.CREATED);
 }
