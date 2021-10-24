@@ -3,7 +3,6 @@ package com.controller;
 import com.controller.dto.MediaDto;
 import com.facade.MediaFacade;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +15,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-@RestController(value = "media")
+@RestController
 @AllArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
+@RequestMapping(value = "/media")
 public class MediaController {
     public static final String AUDIO = "audio";
     private static final int BYTE_RANGE = 128; // increase the byterange from here
 
     public static final String VIDEO = "video";
     public static final String IMAGE = "image";
-    @Value("${user.files}")
-    private static String BASIC_PATH;
+
+    private static final String BASIC_PATH = "../server";
+
     private final MediaFacade mediaFacade;
 
     @GetMapping(value = "/image/{fileUuid}")

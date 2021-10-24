@@ -6,7 +6,6 @@ import com.persistence.model.ContentFileModel;
 import com.service.ContentFileService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -14,8 +13,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class MediaFacade {
 
-    @Value("${user.files}")
-    private static String BASIC_PATH;
+    private static final String BASIC_PATH = "../server";
     @Autowired
     private final ContentFileService contentFileService;
 
