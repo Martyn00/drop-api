@@ -1,19 +1,14 @@
 package com.controller;
 
-import com.controller.dto.MediaDto;
 import com.facade.MediaFacade;
 import com.foldermanipulation.FileService;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
 
@@ -30,17 +25,6 @@ public class MediaController {
     private static final String BASIC_PATH = "../server";
 
     private final MediaFacade mediaFacade;
-
-    @GetMapping(value = "/image/{fileUuid}")
-    public ResponseEntity<Resource> getImage(@PathVariable String fileUuid) throws IOException {
-        MediaDto imageDto = mediaFacade.getMediaDto(fileUuid, IMAGE);
-        File image = new File(imageDto.getPath());
-        final ByteArrayResource inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(image.getPath())));
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .contentLength(inputStream.contentLength())
-                .body(inputStream);
-    }
 
     @GetMapping(value = "/video")
     public Mono<ResponseEntity<byte[]>> streamVideo(@RequestHeader(value = "Range", required = false) String httpRangeList,
