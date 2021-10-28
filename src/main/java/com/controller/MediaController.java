@@ -22,21 +22,20 @@ public class MediaController {
     public static final String VIDEO = "video";
     public static final String IMAGE = "image";
 
-    private static final String BASIC_PATH = "../server";
 
     private final MediaFacade mediaFacade;
 
     @GetMapping(value = "/video")
     public Mono<ResponseEntity<byte[]>> streamVideo(@RequestHeader(value = "Range", required = false) String httpRangeList,
                                                     @RequestParam String filePath) {
-        return Mono.just(getContent(BASIC_PATH + filePath, httpRangeList, VIDEO));
+        return Mono.just(getContent(fileService.BASIC_PATH + filePath, httpRangeList, VIDEO));
     }
 
     @GetMapping("/audio/{filePath}")
     public Mono<ResponseEntity<byte[]>> streamAudio(@RequestHeader(value = "Range", required = false) String httpRangeList,
                                                     @PathVariable String filePath) {
         //        can add find filePath from database
-        return Mono.just(getContent(BASIC_PATH + filePath, httpRangeList, AUDIO));
+        return Mono.just(getContent(fileService.BASIC_PATH + filePath, httpRangeList, AUDIO));
     }
 
     private ResponseEntity<byte[]> getContent(String location, String range, String contentTypePrefix) {

@@ -16,7 +16,7 @@ import java.nio.file.StandardCopyOption;
 public class FileService {
 
     @Value("${user.files}")
-    private String BASIC_PATH;
+    public String BASIC_PATH;
 
     private static final int BYTE_RANGE = 512;
 
