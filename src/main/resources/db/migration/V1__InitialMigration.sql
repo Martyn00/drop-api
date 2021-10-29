@@ -30,6 +30,7 @@ create table folders_content
     file_type_model_id bigint,
     parent_folder_id   bigint,
     root_folder_id     bigint,
+    file_mime          VARCHAR(255),
     primary key (id)
 );
 create table folders_content_sub_files

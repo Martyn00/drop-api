@@ -10,10 +10,12 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 
-@Service
+
 @AllArgsConstructor
+@Service
 public class ContentFileService {
-    ContentFileRepository contentFileRepository;
+
+    private ContentFileRepository contentFileRepository;
 
     public ContentFileModel save(ContentFileModel fileModel) {
         return contentFileRepository.save(fileModel);
