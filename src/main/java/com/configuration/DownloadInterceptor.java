@@ -14,7 +14,6 @@ public class DownloadInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws IOException {
-        System.out.println("ZIPPPPPP");
         File workingFile = new File(System.getProperty("user.dir"));
         File aboveWorking = new File(workingFile.getParent());
         FileSystemUtils.deleteRecursively(Paths.get(aboveWorking.getPath() + "/server/temp/" + SecurityContextHolder.getContext().getAuthentication().getName()));

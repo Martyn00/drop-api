@@ -140,7 +140,6 @@ public class FolderController {
                                                                 @RequestParam(required = false) String fileType,
                                                                 @RequestParam(defaultValue = "ALL", required = false) SearchRangeDto range) {
         return new ResponseEntity<>(folderFacade.searchFolder(folderUuid, fileName, fileType, range), HttpStatus.OK);
-//        return null;
     }
 }
 

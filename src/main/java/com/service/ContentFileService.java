@@ -40,6 +40,7 @@ public class ContentFileService {
 
     public Boolean checkFileExistsByName(String parentUuid, String fileName) {
         ContentFileModel parentFolder = findContentFileModelByUuid(parentUuid);
+
         Optional<ContentFileModel> fileWithSameName = parentFolder.getSubFiles()
                 .stream()
                 .filter(subFile -> subFile.getFileName().equals(fileName)).findFirst();
