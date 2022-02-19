@@ -148,6 +148,14 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
         webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
+
+    @GetMapping(path = "/search")
+    public ResponseEntity<List<FileMetadataDto>> searchInFolder(@RequestParam(required = false) String folderUuid,
+                                                                @RequestParam String fileName,
+                                                                @RequestParam(required = false) String fileType,
+                                                                @RequestParam(defaultValue = "ALL", required = false) SearchRangeDto range) {
+        return new ResponseEntity<>(folderFacade.searchFolder(folderUuid, fileName, fileType, range), HttpStatus.OK);
+    }
 }
 
 

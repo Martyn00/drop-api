@@ -10,10 +10,12 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 
-@Service
+
 @AllArgsConstructor
+@Service
 public class ContentFileService {
-    ContentFileRepository contentFileRepository;
+
+    private ContentFileRepository contentFileRepository;
 
     public ContentFileModel save(ContentFileModel fileModel) {
         return contentFileRepository.save(fileModel);
@@ -38,6 +40,7 @@ public class ContentFileService {
 
     public Boolean checkFileExistsByName(String parentUuid, String fileName) {
         ContentFileModel parentFolder = findContentFileModelByUuid(parentUuid);
+
         Optional<ContentFileModel> fileWithSameName = parentFolder.getSubFiles()
                 .stream()
                 .filter(subFile -> subFile.getFileName().equals(fileName)).findFirst();

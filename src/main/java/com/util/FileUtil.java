@@ -41,6 +41,7 @@ public class FileUtil {
         contentFileModel.setLastModifiedDate(ZonedDateTime.now());
         contentFileModel.setSize(size);
         contentFileModel.setFileName(fileName);
+        contentFileModel.setFileMime(fileMime);
         contentFileModel.setFileTypeModel(fileTypeService.findFileTypeByFileMime(fileMime));
         return contentFileModel;
     }
@@ -52,6 +53,7 @@ public class FileUtil {
         contentFileModel.setLastModifiedDate(ZonedDateTime.now());
         contentFileModel.setSize(size);
         contentFileModel.setFileName(fileName);
+        contentFileModel.setFileMime(fileTypeModel.getTypeName());
         contentFileModel.setFileTypeModel(fileTypeModel);
         return contentFileModel;
     }
