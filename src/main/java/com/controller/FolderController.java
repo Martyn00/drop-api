@@ -35,6 +35,7 @@ public class FolderController {
     private final RootFolderFacade rootFolderFacade;
 
     private final UserFacade userFacade;
+    WebSocketController webSocketService;
 
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<DirectoriesDto> getAllDirectories(@PathVariable String uuid) {
@@ -46,28 +47,36 @@ public class FolderController {
         return new ResponseEntity<>(folderFacade.getAllFiles(folderUuid), HttpStatus.OK);
     }
 
-    @PostMapping
-    public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto createFolderDto) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return new ResponseEntity<>(folderFacade.
-                createFolder(createFolderDto, username), HttpStatus.CREATED);
-    }
+//    aici
+@PostMapping
+public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto createFolderDto) {
+    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    webSocketService.notifySubscribersToTopic("mesaj", "topic");
+    return new ResponseEntity<>(folderFacade.
+            createFolder(createFolderDto, username), HttpStatus.CREATED);
+}
 
+    //aici
     @PostMapping(value = "/file-upload/{parentUuid}", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile[] files, @PathVariable String parentUuid) {
         Arrays.stream(files).forEach(file -> fileFacade.uploadFile(file, file.getOriginalFilename(), parentUuid));
+        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    //aici
     @PostMapping(value = "/create-shared-folder/{folderName}")
     public ResponseEntity<String> createSharedFolder(@PathVariable String folderName) {
         rootFolderFacade.createSharedFolder(folderName);
+        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "add-users-to-shared-folder/{folderUuid}")
+    //aici
+    @PostMapping(value = "add-users-to-shared-folder/{nais}")
     public ResponseEntity<String> addUsersToSharedFolder(@PathVariable String folderUuid, @RequestBody List<AddedUserDto> addedUserDtos) {
         rootFolderFacade.addUsersToSharedFolder(folderUuid, addedUserDtos);
+        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
@@ -76,9 +85,11 @@ public class FolderController {
         return new ResponseEntity<>(folderFacade.renameFolder(renameFolderDto), HttpStatus.OK);
     }
 
+    //aici
     @DeleteMapping(value = "/{uuid}")
     public ResponseEntity<Object> deleteFile(@PathVariable String uuid) {
         folderFacade.deleteFileByUuid(uuid);
+        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -112,9 +123,11 @@ public class FolderController {
                 .body(fileSystemResource);
     }
 
+    //aici si diferit daca e copy sau move...
     @PutMapping(value = "/move/{destinationUuid}")
     public ResponseEntity<Object> moveFile(@RequestBody List<FileToMoveDto> filesUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
         filesUuid.forEach(fileUuid -> fileFacade.moveFile(fileUuid.getUuid(), destinationUuid, copy));
+        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<Object>(HttpStatus.ACCEPTED);
     }
 
@@ -128,9 +141,11 @@ public class FolderController {
         return new ResponseEntity<>(userFacade.getUsersAlreadyAdded(parentUuid), HttpStatus.OK);
     }
 
+    //delete user... bafta cu asta
     @PutMapping(path = "/delete-user-from-rootfolder/{parentUuid}/{userUuid}")
     public ResponseEntity<Object> deleteUserFromRootFolder(@PathVariable String parentUuid, @PathVariable String userUuid) {
         rootFolderFacade.deleteUserFromRootFolder(parentUuid, userUuid);
+        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
