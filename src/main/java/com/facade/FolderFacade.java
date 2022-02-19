@@ -200,9 +200,6 @@ public class FolderFacade {
     }
 
     public List<FileMetadataDto> searchFolder(String folderUuid, String fileName, String fileType, SearchRangeDto searchRangeDto) {
-        if (searchRangeDto.equals(SearchRangeDto.ALL)) {
-            System.out.println("ALL");
-        }
         String user = SecurityContextHolder.getContext().getAuthentication().getName();
         UserModel userModel = userService.findUserByUsername(user);
         List<FileMetadataDto> fileMetadataDtos = new ArrayList<>();

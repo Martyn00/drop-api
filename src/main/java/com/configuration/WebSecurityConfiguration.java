@@ -58,7 +58,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/authentication/**")
                 .permitAll()
-                .antMatchers("/users/register/**", "/media/**")
+                .antMatchers("/users/register/**", "/media/**", "topic/**")
                 .permitAll()
                 .requestMatchers(request -> request.getRequestURI().contains("exists"))
                 .permitAll()

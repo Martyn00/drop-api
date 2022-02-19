@@ -128,7 +128,7 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
     public ResponseEntity<Object> moveFile(@RequestBody List<FileToMoveDto> filesUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
         filesUuid.forEach(fileUuid -> fileFacade.moveFile(fileUuid.getUuid(), destinationUuid, copy));
         webSocketService.notifySubscribersToTopic("mesaj", "topic");
-        return new ResponseEntity<Object>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @GetMapping(path = "/{parentUuid}/users-without-access")
