@@ -1,6 +1,5 @@
 package com.facade;
 
-import com.controller.WebSocketController;
 import com.controller.dto.*;
 import com.exception.ServiceException;
 import com.foldermanipulation.FolderCreator;
@@ -38,10 +37,6 @@ public class FolderFacade {
     public static final String PARENT_DIRECTORY = "..";
     public static final String ZIP = ".zip";
     public static final String DIRECTORY_FILE_TYPE = "directory";
-    public static final String NOTIFY_MESSAGE = "CHANGE HAS BEEN MADE";
-
-    private final WebSocketController webSocketController;
-
     private final RootFolderService rootFolderService;
 
     private final ContentFileService contentFileService;
@@ -111,7 +106,6 @@ public class FolderFacade {
         createdFolder.setLastModifiedDate(ZonedDateTime.now());
         FileTypeModel fileTypeModel = fileTypeService.getFileTypeByName(DIRECTORY_FILE_TYPE);
         createdFolder.setFileTypeModel(fileTypeModel);
-        webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, createFolderDto.getFolderId());
         try {
             parentFolder = contentFileService.getFileByUuid(createFolderDto.getFolderId());
             fileutil.checkUniqueName(parentFolder, createFolderDto.getFolderName());
@@ -137,7 +131,6 @@ public class FolderFacade {
     public DirectoryDto renameFolder(RenameFolderDto renameFolderDto) {
         ContentFileModel folderToRename = contentFileService.findContentFileModelByUuid(renameFolderDto.getFolderId());
         folderToRename.setFileName(renameFolderDto.getFolderName());
-        notifySubscribers(folderToRename);
         //set subfolders path
         String oldPath = folderToRename.getPath();
         String[] path = oldPath.split(SLASH);
@@ -165,16 +158,13 @@ public class FolderFacade {
     public void deleteFileByUuid(String uuid) {
         ContentFileModel fileToDelete = contentFileService.findContentFileModelByUuid(uuid);
         ContentFileModel parent = fileToDelete.getParentFolder();
-
         if (parent != null) {
             parent.getSubFiles().remove(fileToDelete);
             contentFileService.save(parent);
-            webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, parent.getUuid());
         } else {
             RootFolderModel rootFolderModel = fileToDelete.getRootFolder();
             rootFolderModel.getFiles().remove(fileToDelete);
             rootFolderService.save(rootFolderModel);
-            webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, rootFolderModel.getUuid());
         }
         contentFileService.deleteFileByUuid(uuid);
         folderCreator.deleteFolder(fileToDelete.getPath());
@@ -192,6 +182,7 @@ public class FolderFacade {
 
     public File zipAll(String path, String directoryName) {
         File directoryToZip = new File(path);
+        String[] splitPath = path.split("\\\\");
         String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
                 concat(SecurityContextHolder.getContext().getAuthentication().getName())
                 .concat(SLASH).concat(directoryName).concat(ZIP);
@@ -201,14 +192,13 @@ public class FolderFacade {
     }
 
     public Boolean checkFileExistsByName(String parentUuid, String fileName) {
-        try {
-            return contentFileService.checkFileExistsByName(parentUuid, fileName);
-        } catch (ServiceException exception) {
-            return rootFolderService.checkFileExistsByName(parentUuid, fileName);
-        }
+        return contentFileService.checkFileExistsByName(parentUuid, fileName);
     }
 
     public List<FileMetadataDto> searchFolder(String folderUuid, String fileName, String fileType, SearchRangeDto searchRangeDto) {
+        if (searchRangeDto.equals(SearchRangeDto.ALL)) {
+            System.out.println("ALL");
+        }
         String user = SecurityContextHolder.getContext().getAuthentication().getName();
         UserModel userModel = userService.findUserByUsername(user);
         List<FileMetadataDto> fileMetadataDtos = new ArrayList<>();
@@ -222,10 +212,6 @@ public class FolderFacade {
             searchInSubFolder(fileName, fileType, accessibleRootFolders, fileMetadataDtos);
         }
         return fileMetadataDtos;
-    }
-
-    public void deleteMultipleFiles(FilesDeleteDto filesDeleteDto) {
-        filesDeleteDto.getFilesToDeleteUuids().forEach(this::deleteFileByUuid);
     }
 
     private void searchSharedDrives(String folderUuid, String fileName, String fileType, UserModel userModel, List<FileMetadataDto> fileMetadataDtos) {
@@ -287,15 +273,6 @@ public class FolderFacade {
         Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
         newPath.deleteCharAt(newPath.length() - 1);
         return newPath;
-    }
-
-    private void notifySubscribers(ContentFileModel contentFileModel) {
-        if (contentFileModel.getParentFolder() != null) {
-            webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, contentFileModel.getParentFolder().getUuid());
-
-        } else {
-            webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, contentFileModel.getRootFolder().getUuid());
-        }
     }
     //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
 //    public File zipDirectory(String path) throws IOException {

@@ -38,6 +38,7 @@ public class ControllerExceptionHandler {
     public ResponseEntity<Object> handleServiceException(ServiceException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.NOT_FOUND, Collections.emptyList());
     }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.NOT_FOUND, Collections.emptyList());

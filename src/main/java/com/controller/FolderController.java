@@ -36,7 +36,6 @@ public class FolderController {
 
     private final UserFacade userFacade;
 
-
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<DirectoriesDto> getAllDirectories(@PathVariable String uuid) {
         return new ResponseEntity<>(folderFacade.getDirectories(uuid), HttpStatus.OK);
@@ -47,29 +46,25 @@ public class FolderController {
         return new ResponseEntity<>(folderFacade.getAllFiles(folderUuid), HttpStatus.OK);
     }
 
-//    aici
-@PostMapping
-public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto createFolderDto) {
-    String username = SecurityContextHolder.getContext().getAuthentication().getName();
-    return new ResponseEntity<>(folderFacade.
-            createFolder(createFolderDto, username), HttpStatus.CREATED);
-}
+    @PostMapping
+    public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto createFolderDto) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return new ResponseEntity<>(folderFacade.
+                createFolder(createFolderDto, username), HttpStatus.CREATED);
+    }
 
-    //aici
     @PostMapping(value = "/file-upload/{parentUuid}", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile[] files, @PathVariable String parentUuid) {
         Arrays.stream(files).forEach(file -> fileFacade.uploadFile(file, file.getOriginalFilename(), parentUuid));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    //aici
     @PostMapping(value = "/create-shared-folder/{folderName}")
     public ResponseEntity<String> createSharedFolder(@PathVariable String folderName) {
         rootFolderFacade.createSharedFolder(folderName);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    //aici
     @PostMapping(value = "add-users-to-shared-folder/{folderUuid}")
     public ResponseEntity<String> addUsersToSharedFolder(@PathVariable String folderUuid, @RequestBody List<AddedUserDto> addedUserDtos) {
         rootFolderFacade.addUsersToSharedFolder(folderUuid, addedUserDtos);
@@ -81,7 +76,6 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
         return new ResponseEntity<>(folderFacade.renameFolder(renameFolderDto), HttpStatus.OK);
     }
 
-    //aici
     @DeleteMapping(value = "/{uuid}")
     public ResponseEntity<Object> deleteFile(@PathVariable String uuid) {
         folderFacade.deleteFileByUuid(uuid);
@@ -101,7 +95,9 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
             folderFacade.createTempDirectoryForUser(SecurityContextHolder.getContext().getAuthentication().getName());
             fileToDownload = folderFacade.zipAll(fileToDownload.getPath(), fileToDownload.getName());
         }
+        System.out.println(fileToDownload.exists());
         FileSystemResource fileSystemResource = new FileSystemResource(fileToDownload);
+        System.out.println(SecurityContextHolder.getContext().getAuthentication().getName());
         String mime = Files.probeContentType(fileToDownload.toPath());
         if (mime == null || mime.equals("text/plain") || mime.equals("image/png")) {
             mime = "application/octet-stream";
@@ -116,11 +112,10 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
                 .body(fileSystemResource);
     }
 
-    //aici si diferit daca e copy sau move...
     @PutMapping(value = "/move/{destinationUuid}")
     public ResponseEntity<Object> moveFile(@RequestBody List<FileToMoveDto> filesUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
         filesUuid.forEach(fileUuid -> fileFacade.moveFile(fileUuid.getUuid(), destinationUuid, copy));
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<Object>(HttpStatus.ACCEPTED);
     }
 
     @GetMapping(path = "/{parentUuid}/users-without-access")
@@ -133,7 +128,6 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
         return new ResponseEntity<>(userFacade.getUsersAlreadyAdded(parentUuid), HttpStatus.OK);
     }
 
-    //delete user... bafta cu asta
     @PutMapping(path = "/delete-user-from-rootfolder/{parentUuid}/{userUuid}")
     public ResponseEntity<Object> deleteUserFromRootFolder(@PathVariable String parentUuid, @PathVariable String userUuid) {
         rootFolderFacade.deleteUserFromRootFolder(parentUuid, userUuid);
@@ -146,12 +140,7 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
                                                                 @RequestParam(required = false) String fileType,
                                                                 @RequestParam(defaultValue = "ALL", required = false) SearchRangeDto range) {
         return new ResponseEntity<>(folderFacade.searchFolder(folderUuid, fileName, fileType, range), HttpStatus.OK);
-    }
-
-    @PutMapping(path = "/delete")
-    public ResponseEntity<Object> deleteMultipleFiles(@RequestBody FilesDeleteDto filesDeleteDto) {
-        folderFacade.deleteMultipleFiles(filesDeleteDto);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+//        return null;
     }
 }
 
