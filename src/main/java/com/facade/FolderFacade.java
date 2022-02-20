@@ -183,6 +183,7 @@ public class FolderFacade {
 
     public File zipAll(String path, String directoryName) {
         File directoryToZip = new File(path);
+        String[] splitPath = path.split("\\\\");
         String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
                 concat(SecurityContextHolder.getContext().getAuthentication().getName())
                 .concat(SLASH).concat(directoryName).concat(ZIP);
@@ -192,14 +193,13 @@ public class FolderFacade {
     }
 
     public Boolean checkFileExistsByName(String parentUuid, String fileName) {
-        try {
-            return contentFileService.checkFileExistsByName(parentUuid, fileName);
-        } catch (ServiceException exception) {
-            return rootFolderService.checkFileExistsByName(parentUuid, fileName);
-        }
+        return contentFileService.checkFileExistsByName(parentUuid, fileName);
     }
 
     public List<FileMetadataDto> searchFolder(String folderUuid, String fileName, String fileType, SearchRangeDto searchRangeDto) {
+        if (searchRangeDto.equals(SearchRangeDto.ALL)) {
+            System.out.println("ALL");
+        }
         String user = SecurityContextHolder.getContext().getAuthentication().getName();
         UserModel userModel = userService.findUserByUsername(user);
         List<FileMetadataDto> fileMetadataDtos = new ArrayList<>();
@@ -213,10 +213,6 @@ public class FolderFacade {
             searchInSubFolder(fileName, fileType, accessibleRootFolders, fileMetadataDtos);
         }
         return fileMetadataDtos;
-    }
-
-    public void deleteMultipleFiles(FilesDeleteDto filesDeleteDto) {
-        filesDeleteDto.getFilesToDeleteUuids().forEach(this::deleteFileByUuid);
     }
 
     private void searchSharedDrives(String folderUuid, String fileName, String fileType, UserModel userModel, List<FileMetadataDto> fileMetadataDtos) {
