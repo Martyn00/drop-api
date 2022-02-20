@@ -75,7 +75,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
-
+//    configure
     @Override
     public void configure(WebSecurity web) {
         web.ignoring().antMatchers("/v3/api-docs",
