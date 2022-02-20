@@ -35,7 +35,7 @@ public class FolderController {
     private final RootFolderFacade rootFolderFacade;
 
     private final UserFacade userFacade;
-    WebSocketController webSocketService;
+
 
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<DirectoriesDto> getAllDirectories(@PathVariable String uuid) {
@@ -51,7 +51,6 @@ public class FolderController {
 @PostMapping
 public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto createFolderDto) {
     String username = SecurityContextHolder.getContext().getAuthentication().getName();
-    webSocketService.notifySubscribersToTopic("mesaj", "topic");
     return new ResponseEntity<>(folderFacade.
             createFolder(createFolderDto, username), HttpStatus.CREATED);
 }
@@ -60,7 +59,6 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
     @PostMapping(value = "/file-upload/{parentUuid}", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadFile(@RequestParam("files") MultipartFile[] files, @PathVariable String parentUuid) {
         Arrays.stream(files).forEach(file -> fileFacade.uploadFile(file, file.getOriginalFilename(), parentUuid));
-        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -68,15 +66,13 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
     @PostMapping(value = "/create-shared-folder/{folderName}")
     public ResponseEntity<String> createSharedFolder(@PathVariable String folderName) {
         rootFolderFacade.createSharedFolder(folderName);
-        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     //aici
     @PostMapping(value = "add-users-to-shared-folder/{folderUuid}")
-    public ResponseEntity<String> addUsersToSharedFolder(@PathVariable(value = "folderUuid") String folderUuid, @RequestBody List<AddedUserDto> addedUserDtos) {
+    public ResponseEntity<String> addUsersToSharedFolder(@PathVariable String folderUuid, @RequestBody List<AddedUserDto> addedUserDtos) {
         rootFolderFacade.addUsersToSharedFolder(folderUuid, addedUserDtos);
-        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
@@ -89,7 +85,6 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
     @DeleteMapping(value = "/{uuid}")
     public ResponseEntity<Object> deleteFile(@PathVariable String uuid) {
         folderFacade.deleteFileByUuid(uuid);
-        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -106,9 +101,7 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
             folderFacade.createTempDirectoryForUser(SecurityContextHolder.getContext().getAuthentication().getName());
             fileToDownload = folderFacade.zipAll(fileToDownload.getPath(), fileToDownload.getName());
         }
-        System.out.println(fileToDownload.exists());
         FileSystemResource fileSystemResource = new FileSystemResource(fileToDownload);
-        System.out.println(SecurityContextHolder.getContext().getAuthentication().getName());
         String mime = Files.probeContentType(fileToDownload.toPath());
         if (mime == null || mime.equals("text/plain") || mime.equals("image/png")) {
             mime = "application/octet-stream";
@@ -127,7 +120,6 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
     @PutMapping(value = "/move/{destinationUuid}")
     public ResponseEntity<Object> moveFile(@RequestBody List<FileToMoveDto> filesUuid, @PathVariable String destinationUuid, @RequestParam Boolean copy) {
         filesUuid.forEach(fileUuid -> fileFacade.moveFile(fileUuid.getUuid(), destinationUuid, copy));
-        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
@@ -145,7 +137,6 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
     @PutMapping(path = "/delete-user-from-rootfolder/{parentUuid}/{userUuid}")
     public ResponseEntity<Object> deleteUserFromRootFolder(@PathVariable String parentUuid, @PathVariable String userUuid) {
         rootFolderFacade.deleteUserFromRootFolder(parentUuid, userUuid);
-        webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
