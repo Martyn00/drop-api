@@ -142,6 +142,13 @@ public class FolderController {
         return new ResponseEntity<>(folderFacade.searchFolder(folderUuid, fileName, fileType, range), HttpStatus.OK);
 //        return null;
     }
+
+    @DeleteMapping
+    public ResponseEntity<Object> deleteMultipleFiles(@RequestBody List<FileDeleteDto> fileDeleteDto) {
+        System.out.println("DAS");
+        folderFacade.deleteMultipleFiles(fileDeleteDto);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
 
 
