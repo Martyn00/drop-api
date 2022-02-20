@@ -1,6 +1,5 @@
 package com.facade;
 
-import com.controller.WebSocketController;
 import com.exception.ServiceException;
 import com.foldermanipulation.FileService;
 import com.persistence.model.ContentFileModel;
@@ -17,8 +16,6 @@ import java.io.File;
 @Component
 @AllArgsConstructor
 public class FileFacade {
-    public static final String NOTIFY_MESSAGE = "CHANGE HAS BEEN MADE";
-
     private final FileService fileService;
 
     private final ContentFileService contentFileService;
@@ -28,12 +25,10 @@ public class FileFacade {
 
     private final FilePathChanger filePathChanger;
 
-    private WebSocketController webSocketController;
-
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
         ContentFileModel contentFileModel = fileUtil.setBasicData(fileName, file.getSize(), file.getContentType());
         updateParents(contentFileModel, parentUuid);
-        webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, parentUuid);
+        System.out.println(file.getContentType());
         fileService.uploadFile(file, contentFileModel.getPath());
     }
 
@@ -44,7 +39,6 @@ public class FileFacade {
             fileUtil.checkUniqueName(parentFolder, contentFileModel.getFileName());
             parentFolder.getSubFiles().add(contentFileModel);
             contentFileModel.setParentFolder(parentFolder);
-            webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, parentFolder.getUuid());
             contentFileModel.setRootFolder(parentFolder.getRootFolder());
             contentFileModel.setPath(parentFolder.getPath() + "/" + contentFileModel.getFileName());
             contentFileModel.setFileCreator(parentFolder.getFileCreator());
@@ -56,7 +50,6 @@ public class FileFacade {
             contentFileModel.setRootFolder(rootFolder);
             contentFileModel.setPath(rootFolder.getPath() + "/" + contentFileModel.getFileName());
             contentFileModel.setFileCreator(rootFolder.getFolderCreator());
-            webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, rootFolder.getUuid());
             contentFileService.save(contentFileModel);
         }
     }
@@ -77,13 +70,10 @@ public class FileFacade {
             fileService.copyFile("../server" + fileModel.getPath(), "../server" + newPath);
             filePathChanger.updateFilesOnCopy(fileModel, destinationUuid);
         }
-
-        webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, fileModel.getParentFolder().getUuid());
-        webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, destinationUuid);
     }
 
 
-    private String getParentPath(String parentUuid) {
+    String getParentPath(String parentUuid) {
         try {
             return rootFolderService.getRootFolderByUuid(parentUuid).getPath();
         } catch (ServiceException ex) {

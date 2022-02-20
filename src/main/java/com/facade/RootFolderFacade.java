@@ -1,6 +1,5 @@
 package com.facade;
 
-import com.controller.WebSocketController;
 import com.controller.dto.AddedUserDto;
 import com.exception.AuthorizationException;
 import com.exception.FacadeException;
@@ -21,8 +20,7 @@ import java.util.stream.Collectors;
 @Component
 @AllArgsConstructor
 public class RootFolderFacade {
-    public static final String NOTIFY_MESSAGE = "CHANGE HAS BEEN MADE";
-    private final WebSocketController webSocketController;
+
     private static final String PRIVATE = "My drive";
     private static final String PATH_SEPARATOR = "/";
     private final RootFolderCreator rootFolderCreator;
