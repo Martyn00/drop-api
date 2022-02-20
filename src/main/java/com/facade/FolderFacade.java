@@ -192,7 +192,6 @@ public class FolderFacade {
 
     public File zipAll(String path, String directoryName) {
         File directoryToZip = new File(path);
-        String[] splitPath = path.split("\\\\");
         String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
                 concat(SecurityContextHolder.getContext().getAuthentication().getName())
                 .concat(SLASH).concat(directoryName).concat(ZIP);
@@ -223,6 +222,10 @@ public class FolderFacade {
             searchInSubFolder(fileName, fileType, accessibleRootFolders, fileMetadataDtos);
         }
         return fileMetadataDtos;
+    }
+
+    public void deleteMultipleFiles(FilesDeleteDto filesDeleteDto) {
+        filesDeleteDto.getFilesToDeleteUuids().forEach(this::deleteFileByUuid);
     }
 
     private void searchSharedDrives(String folderUuid, String fileName, String fileType, UserModel userModel, List<FileMetadataDto> fileMetadataDtos) {
