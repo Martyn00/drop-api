@@ -6,12 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
-public class FileDeleteDto {
+public class FilesDeleteDto {
 
-    @JsonProperty(value = "fileToDeleteUuid")
-    private String fileToDeleteUuid;
+    @JsonProperty(value = "filesToDeleteIds")
+    private List<String> filesToDeleteUuids;
 
 }

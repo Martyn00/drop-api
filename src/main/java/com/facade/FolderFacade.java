@@ -214,8 +214,8 @@ public class FolderFacade {
         return fileMetadataDtos;
     }
 
-    public void deleteMultipleFiles(List<FileDeleteDto> foldersToDeleteUuid) {
-        foldersToDeleteUuid.forEach(fileDeleteDto -> deleteFileByUuid(fileDeleteDto.getFileToDeleteUuid()));
+    public void deleteMultipleFiles(FilesDeleteDto filesDeleteDto) {
+        filesDeleteDto.getFilesToDeleteUuids().forEach(this::deleteFileByUuid);
     }
 
     private void searchSharedDrives(String folderUuid, String fileName, String fileType, UserModel userModel, List<FileMetadataDto> fileMetadataDtos) {

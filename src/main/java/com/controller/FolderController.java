@@ -157,10 +157,9 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
         return new ResponseEntity<>(folderFacade.searchFolder(folderUuid, fileName, fileType, range), HttpStatus.OK);
     }
 
-    @DeleteMapping
-    public ResponseEntity<Object> deleteMultipleFiles(@RequestBody List<FileDeleteDto> fileDeleteDto) {
-        System.out.println("DAS");
-        folderFacade.deleteMultipleFiles(fileDeleteDto);
+    @PutMapping(path = "/delete")
+    public ResponseEntity<Object> deleteMultipleFiles(@RequestBody FilesDeleteDto filesDeleteDto) {
+        folderFacade.deleteMultipleFiles(filesDeleteDto);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
