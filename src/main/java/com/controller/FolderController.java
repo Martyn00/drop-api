@@ -73,8 +73,8 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
     }
 
     //aici
-    @PostMapping(value = "add-users-to-shared-folder/{nais}")
-    public ResponseEntity<String> addUsersToSharedFolder(@PathVariable String folderUuid, @RequestBody List<AddedUserDto> addedUserDtos) {
+    @PostMapping(value = "add-users-to-shared-folder/{folderUuid}")
+    public ResponseEntity<String> addUsersToSharedFolder(@PathVariable(value = "folderUuid") String folderUuid, @RequestBody List<AddedUserDto> addedUserDtos) {
         rootFolderFacade.addUsersToSharedFolder(folderUuid, addedUserDtos);
         webSocketService.notifySubscribersToTopic("mesaj", "topic");
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
