@@ -64,10 +64,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .requestMatchers(request -> request.getRequestURI().contains("api-docs"))
                 .permitAll()
-                .antMatchers( "/v2/api-docs",
+                .antMatchers("/v2/api-docs",
                         "/swagger-resources/**",
                         "/swagger-ui.html",
-                        "/webjars/**")
+                        "/webjars/**", "/stomp/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
@@ -81,6 +81,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/v3/api-docs",
                 "/swagger-resources/**",
                 "/swagger-ui.html",
-                "/swagger-ui/**");
+                "/swagger-ui/**", "/stomp/**");
     }
 }
