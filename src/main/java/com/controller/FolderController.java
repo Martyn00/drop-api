@@ -147,6 +147,12 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
                                                                 @RequestParam(defaultValue = "ALL", required = false) SearchRangeDto range) {
         return new ResponseEntity<>(folderFacade.searchFolder(folderUuid, fileName, fileType, range), HttpStatus.OK);
     }
+
+    @PutMapping(path = "/delete")
+    public ResponseEntity<Object> deleteMultipleFiles(@RequestBody FilesDeleteDto filesDeleteDto) {
+        folderFacade.deleteMultipleFiles(filesDeleteDto);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
 
 
