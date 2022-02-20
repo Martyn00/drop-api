@@ -1,5 +1,6 @@
 package com.facade;
 
+import com.controller.WebSocketController;
 import com.exception.ServiceException;
 import com.foldermanipulation.FileService;
 import com.persistence.model.ContentFileModel;
@@ -16,6 +17,8 @@ import java.io.File;
 @Component
 @AllArgsConstructor
 public class FileFacade {
+    public static final String NOTIFY_MESSAGE = "CHANGE HAS BEEN MADE";
+
     private final FileService fileService;
 
     private final ContentFileService contentFileService;
@@ -24,11 +27,12 @@ public class FileFacade {
     private final FileUtil fileUtil;
 
     private final FilePathChanger filePathChanger;
+    private WebSocketController webSocketController;
 
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
         ContentFileModel contentFileModel = fileUtil.setBasicData(fileName, file.getSize(), file.getContentType());
         updateParents(contentFileModel, parentUuid);
-        System.out.println(file.getContentType());
+        webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, parentUuid);
         fileService.uploadFile(file, contentFileModel.getPath());
     }
 
@@ -73,7 +77,7 @@ public class FileFacade {
     }
 
 
-    String getParentPath(String parentUuid) {
+    private String getParentPath(String parentUuid) {
         try {
             return rootFolderService.getRootFolderByUuid(parentUuid).getPath();
         } catch (ServiceException ex) {

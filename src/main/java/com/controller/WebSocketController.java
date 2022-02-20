@@ -9,13 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void notifySubscribersToTopic(String message, String topic) {
-        messagingTemplate.convertAndSend("/topic/greetings", message);
+    public void notifySubscribersToTopic(String message, String uuid) {
+        messagingTemplate.convertAndSend("/topic/" + uuid, message);
     }
-
-//    @SendTo("/topic/greetings")
-//    public String greeting(String message) throws InterruptedException {
-//        Thread.sleep(1000); // simulated delay
-//        return message;
-//    }
 }
