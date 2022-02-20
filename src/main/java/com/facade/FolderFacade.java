@@ -219,6 +219,21 @@ public class FolderFacade {
         filesDeleteDto.getFilesToDeleteUuids().forEach(this::deleteFileByUuid);
     }
 
+    public DirectoryDto renameSharedFolder(RenameFolderDto renameFolderDto) {
+        RootFolderModel folderToRename = rootFolderService.getRootFolderByUuid(renameFolderDto.getFolderId());
+        folderToRename.setFileName(renameFolderDto.getFolderName());
+        //set subfolders path
+        String oldPath = folderToRename.getPath();
+        String[] path = oldPath.split(SLASH);
+        renamePaths(folderToRename.getFiles(), renameFolderDto.getFolderName(), path.length - 1);
+
+        //set folder path
+        StringBuilder newPath = createNewPath(path, path.length - 1, renameFolderDto.getFolderName());
+        folderToRename.setPath(newPath.toString());
+        folderCreator.renameFolder(oldPath, newPath.toString());
+        return fileMapper.mapRootFolderToDirectoryDto(rootFolderService.save(folderToRename));
+    }
+
     private void searchSharedDrives(String folderUuid, String fileName, String fileType, UserModel userModel, List<FileMetadataDto> fileMetadataDtos) {
         try {
             searchInSubFolder(folderUuid, fileName, fileType, fileMetadataDtos);
@@ -272,6 +287,8 @@ public class FolderFacade {
         }
     }
 
+
+
     private StringBuilder createNewPath(String[] splitPath, int folderToRenameIndex, String folderName) {
         splitPath[folderToRenameIndex] = folderName;
         StringBuilder newPath = new StringBuilder();
@@ -280,11 +297,6 @@ public class FolderFacade {
         return newPath;
     }
 
-    public DirectoryDto renameSharedFolder(RenameFolderDto renameFolderDto) {
-        RootFolderModel sharedFolder = rootFolderService.getRootFolderByUuid(renameFolderDto.getFolderId());
-        sharedFolder.setFileName(renameFolderDto.getFolderName());
-        return fileMapper.mapRootFolderToDirectoryDto(rootFolderService.save(sharedFolder));
-    }
     //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
 //    public File zipDirectory(String path) throws IOException {
 //        File directoryToZip = new File(path);
