@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void notifySubscribersToTopic(String message, String topic) {
-        messagingTemplate.convertAndSend("/topic", message);
-    }
+//    @SendTo("/topic/greetings")
+public void notifySubscribersToTopic(String message, String topic) {
+    messagingTemplate.convertAndSend("/topic/greetings", message);
+}
+
     @SendTo("/topic/greetings")
     public String greeting(String message) throws Exception {
         Thread.sleep(1000); // simulated delay
