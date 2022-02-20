@@ -1,5 +1,6 @@
 package com.facade;
 
+import com.controller.WebSocketController;
 import com.controller.dto.*;
 import com.exception.ServiceException;
 import com.foldermanipulation.FolderCreator;
@@ -15,7 +16,6 @@ import com.util.FileMapper;
 import com.util.FileUtil;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.zip.ZipUtil;
@@ -39,7 +39,6 @@ public class FolderFacade {
     public static final String ZIP = ".zip";
     public static final String DIRECTORY_FILE_TYPE = "directory";
     private final RootFolderService rootFolderService;
-
     private final ContentFileService contentFileService;
 
     private final FileMapper fileMapper;
@@ -55,6 +54,8 @@ public class FolderFacade {
     private final UserFacade userFacade;
 
     private final FileUtil fileutil;
+
+    private final WebSocketController webSocketController;
 
     public DirectoriesDto getDirectories(String uuid) {
         List<RootFolderModel> rootFolders = userFacade.getAllRootFoldersByUserUuid(uuid);
@@ -116,6 +117,7 @@ public class FolderFacade {
             parentFolder.getSubFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
             contentFileService.save(createdFolder);
+            webSocketController.notifySubscribersToTopic("", parentFolder.getUuid());
         } catch (ServiceException ex) {
             RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
             fileutil.checkUniqueName(rootFolder, createFolderDto.getFolderName());
@@ -125,6 +127,8 @@ public class FolderFacade {
             rootFolder.getFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
             contentFileService.save(createdFolder);
+            webSocketController.notifySubscribersToTopic("", rootFolder.getUuid());
+
         }
         return fileMapper.mapContentFileToDirectoryDto(createdFolder);
     }
@@ -143,6 +147,7 @@ public class FolderFacade {
         folderCreator.renameFolder(oldPath, newPath.toString());
         folderToRename.setLastModifiedDate(ZonedDateTime.now());
         contentFileService.save(folderToRename);
+        notifySubscribers(folderToRename);
         return fileMapper.mapContentFileToDirectoryDto(folderToRename);
     }
 
@@ -159,6 +164,7 @@ public class FolderFacade {
     public void deleteFileByUuid(String uuid) {
         ContentFileModel fileToDelete = contentFileService.findContentFileModelByUuid(uuid);
         ContentFileModel parent = fileToDelete.getParentFolder();
+        notifySubscribers(fileToDelete);
         if (parent != null) {
             parent.getSubFiles().remove(fileToDelete);
             contentFileService.save(parent);
@@ -281,32 +287,17 @@ public class FolderFacade {
         sharedFolder.setFileName(renameFolderDto.getFolderName());
         return fileMapper.mapRootFolderToDirectoryDto(rootFolderService.save(sharedFolder));
     }
-    //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
-//    public File zipDirectory(String path) throws IOException {
-//        File directoryToZip = new File(path);
-//        String[] splitPath = path.split("\\\\");
-//        String fileName = splitPath[splitPath.length - 1];
-//        String zipPath = (PARENT_DIRECTORY + SLASH + SERVER_DIR + SLASH + TEMP_DIR + SLASH).
-//                concat(SecurityContextHolder.getContext().getAuthentication().getName())
-//                .concat(SLASH).concat(fileName).concat(ZIP);
-//        try (FileOutputStream fileOutputStream = new FileOutputStream(zipPath);
-//             ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream)) {
-//            File[] files = directoryToZip.listFiles();
-//            Objects.requireNonNull(files);
-//            for (File file : files) {
-//                try (FileInputStream fileInputStream = new FileInputStream(file)) {
-//                    ZipEntry zipEntry = new ZipEntry(file.getName());
-//                    zipOutputStream.putNextEntry(zipEntry);
-//                    int length;
-//                    byte[] bytes = new byte[1024];
-//                    while ((length = fileInputStream.read(bytes)) >= 0) {
-//                        zipOutputStream.write(bytes, 0, length);
-//                    }
-//                }
-//            }
-//        }
 
-//        return new File(zipPath);
+    private void notifySubscribers(ContentFileModel contentFileModel) {
+        if (contentFileModel.getParentFolder() != null) {
+            webSocketController.notifySubscribersToTopic("", contentFileModel.getParentFolder().getUuid());
+        } else {
+            webSocketController.notifySubscribersToTopic("", contentFileModel.getRootFolder().getUuid());
+        }
+    }
 
-//    }
+    public void deleteMultipleFiles(FilesDeleteDto filesDeleteDto) {
+
+        filesDeleteDto.getFilesToDeleteUuids().forEach(this::deleteFileByUuid);
+    }
 }

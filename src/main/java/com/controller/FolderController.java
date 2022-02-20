@@ -147,6 +147,12 @@ public class FolderController {
     public ResponseEntity<DirectoryDto> renameSharedFolder(@RequestBody RenameFolderDto renameFolderDto) {
         return new ResponseEntity<>(folderFacade.renameSharedFolder(renameFolderDto), HttpStatus.OK);
     }
+
+    @PutMapping(path = "/delete")
+    public ResponseEntity<Object> deleteMultipleFiles(@RequestBody FilesDeleteDto filesDeleteDto) {
+        folderFacade.deleteMultipleFiles(filesDeleteDto);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
 
 

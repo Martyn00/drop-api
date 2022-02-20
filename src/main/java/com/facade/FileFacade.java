@@ -1,5 +1,6 @@
 package com.facade;
 
+import com.controller.WebSocketController;
 import com.exception.ServiceException;
 import com.foldermanipulation.FileService;
 import com.persistence.model.ContentFileModel;
@@ -25,10 +26,11 @@ public class FileFacade {
 
     private final FilePathChanger filePathChanger;
 
+    private final WebSocketController webSocketController;
+
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
         ContentFileModel contentFileModel = fileUtil.setBasicData(fileName, file.getSize(), file.getContentType());
         updateParents(contentFileModel, parentUuid);
-        System.out.println(file.getContentType());
         fileService.uploadFile(file, contentFileModel.getPath());
     }
 
@@ -52,6 +54,7 @@ public class FileFacade {
             contentFileModel.setFileCreator(rootFolder.getFolderCreator());
             contentFileService.save(contentFileModel);
         }
+        webSocketController.notifySubscribersToTopic("", parentUuid);
     }
 
     public File getFile(String uuid) {
@@ -70,6 +73,8 @@ public class FileFacade {
             fileService.copyFile("../server" + fileModel.getPath(), "../server" + newPath);
             filePathChanger.updateFilesOnCopy(fileModel, destinationUuid);
         }
+        notifySubscribers(fileModel);
+        webSocketController.notifySubscribersToTopic("", destinationUuid);
     }
 
 
@@ -78,6 +83,14 @@ public class FileFacade {
             return rootFolderService.getRootFolderByUuid(parentUuid).getPath();
         } catch (ServiceException ex) {
             return contentFileService.getFileByUuid(parentUuid).getPath();
+        }
+    }
+
+    private void notifySubscribers(ContentFileModel contentFileModel) {
+        if (contentFileModel.getParentFolder() != null) {
+            webSocketController.notifySubscribersToTopic("", contentFileModel.getParentFolder().getUuid());
+        } else {
+            webSocketController.notifySubscribersToTopic("", contentFileModel.getRootFolder().getUuid());
         }
     }
 }
