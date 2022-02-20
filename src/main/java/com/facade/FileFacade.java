@@ -27,6 +27,7 @@ public class FileFacade {
     private final FileUtil fileUtil;
 
     private final FilePathChanger filePathChanger;
+
     private WebSocketController webSocketController;
 
     public void uploadFile(MultipartFile file, String fileName, String parentUuid) {
@@ -43,6 +44,7 @@ public class FileFacade {
             fileUtil.checkUniqueName(parentFolder, contentFileModel.getFileName());
             parentFolder.getSubFiles().add(contentFileModel);
             contentFileModel.setParentFolder(parentFolder);
+            webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, parentFolder.getUuid());
             contentFileModel.setRootFolder(parentFolder.getRootFolder());
             contentFileModel.setPath(parentFolder.getPath() + "/" + contentFileModel.getFileName());
             contentFileModel.setFileCreator(parentFolder.getFileCreator());
@@ -54,6 +56,7 @@ public class FileFacade {
             contentFileModel.setRootFolder(rootFolder);
             contentFileModel.setPath(rootFolder.getPath() + "/" + contentFileModel.getFileName());
             contentFileModel.setFileCreator(rootFolder.getFolderCreator());
+            webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, rootFolder.getUuid());
             contentFileService.save(contentFileModel);
         }
     }
@@ -74,6 +77,9 @@ public class FileFacade {
             fileService.copyFile("../server" + fileModel.getPath(), "../server" + newPath);
             filePathChanger.updateFilesOnCopy(fileModel, destinationUuid);
         }
+
+        webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, fileModel.getParentFolder().getUuid());
+        webSocketController.notifySubscribersToTopic(NOTIFY_MESSAGE, destinationUuid);
     }
 
 
