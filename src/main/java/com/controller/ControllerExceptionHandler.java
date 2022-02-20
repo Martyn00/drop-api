@@ -38,7 +38,6 @@ public class ControllerExceptionHandler {
     public ResponseEntity<Object> handleServiceException(ServiceException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.NOT_FOUND, Collections.emptyList());
     }
-
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.NOT_FOUND, Collections.emptyList());
@@ -58,12 +57,17 @@ public class ControllerExceptionHandler {
     }
 
     @ExceptionHandler(AuthorizationException.class)
-    private ResponseEntity<Object> handleUserNameNotFoundException(AuthorizationException exception) {
+    private ResponseEntity<Object> handleAuthorizationException(AuthorizationException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.UNAUTHORIZED, Collections.emptyList());
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
-    private ResponseEntity<Object> handleUserNameNotFoundException(ExpiredJwtException exception) {
+    private ResponseEntity<Object> handleExpiredJwtException(ExpiredJwtException exception) {
         return createResponseBody(exception.getMessage(), HttpStatus.UNAUTHORIZED, Collections.emptyList());
+    }
+
+    @ExceptionHandler(MediaException.class)
+    private ResponseEntity<Object> handleMediaException(MediaException exception) {
+        return createResponseBody(exception.getMessage(), HttpStatus.BAD_REQUEST, Collections.emptyList());
     }
 }

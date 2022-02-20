@@ -353,8 +353,8 @@ VALUES (47, 119);
 INSERT INTO file_mimes (id, file_mime)
 VALUES (55, 'image/png');
 INSERT INTO file_types_file_mimes (file_type_model_id, file_mime_id)
-VALUES (6, 55);
+VALUES (4, 55);
 
 UPDATE hibernate_sequence
 SET next_val = 122;
--- there are unused ids: 59, 62, 101...
+-- there are unused ids: 55, 59, 62, 101...

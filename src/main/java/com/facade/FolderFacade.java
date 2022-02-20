@@ -191,13 +191,14 @@ public class FolderFacade {
     }
 
     public Boolean checkFileExistsByName(String parentUuid, String fileName) {
-        return contentFileService.checkFileExistsByName(parentUuid, fileName);
+        try {
+            return contentFileService.checkFileExistsByName(parentUuid, fileName);
+        } catch (ServiceException exception) {
+            return rootFolderService.checkFileExistsByName(parentUuid, fileName);
+        }
     }
 
     public List<FileMetadataDto> searchFolder(String folderUuid, String fileName, String fileType, SearchRangeDto searchRangeDto) {
-        if (searchRangeDto.equals(SearchRangeDto.ALL)) {
-            System.out.println("ALL");
-        }
         String user = SecurityContextHolder.getContext().getAuthentication().getName();
         UserModel userModel = userService.findUserByUsername(user);
         List<FileMetadataDto> fileMetadataDtos = new ArrayList<>();
