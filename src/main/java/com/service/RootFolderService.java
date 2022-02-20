@@ -1,6 +1,7 @@
 package com.service;
 
 import com.exception.ServiceException;
+import com.persistence.model.ContentFileModel;
 import com.persistence.model.RootFolderModel;
 import com.persistence.model.UserModel;
 import com.persistence.repository.RootFolderRepository;
@@ -8,6 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -35,5 +37,13 @@ public class RootFolderService {
         return rootFolderRepository.findRootFolderModelByUuid(uuid).orElseThrow(() -> {
             throw new ServiceException("The folder does not exist");
         });
+    }
+
+    public Boolean checkFileExistsByName(String parentUuid, String fileName) {
+        RootFolderModel parentFolder = getRootFolderByUuid(parentUuid);
+        Optional<ContentFileModel> fileWithSameName = parentFolder.getFiles()
+                .stream()
+                .filter(subFile -> subFile.getFileName().equals(fileName)).findFirst();
+        return fileWithSameName.isPresent();
     }
 }
