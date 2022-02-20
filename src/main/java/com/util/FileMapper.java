@@ -24,7 +24,7 @@ public class FileMapper {
         return directoriesDto;
     }
 
-    private DirectoryDto mapRootFolderToDirectoryDto(RootFolderModel rootFolder) {
+    public DirectoryDto mapRootFolderToDirectoryDto(RootFolderModel rootFolder) {
         DirectoryDto directoryDto = new DirectoryDto();
         directoryDto.setFileName(rootFolder.getFileName());
         directoryDto.setUuid(rootFolder.getUuid());

@@ -15,6 +15,7 @@ import com.util.FileMapper;
 import com.util.FileUtil;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.zip.ZipUtil;
@@ -277,6 +278,12 @@ public class FolderFacade {
         Arrays.stream(splitPath).forEach(s -> newPath.append(s).append(SLASH));
         newPath.deleteCharAt(newPath.length() - 1);
         return newPath;
+    }
+
+    public DirectoryDto renameSharedFolder(RenameFolderDto renameFolderDto) {
+        RootFolderModel sharedFolder = rootFolderService.getRootFolderByUuid(renameFolderDto.getFolderId());
+        sharedFolder.setFileName(renameFolderDto.getFolderName());
+        return fileMapper.mapRootFolderToDirectoryDto(rootFolderService.save(sharedFolder));
     }
     //METHOD BELOW COMMENTED AND KEPT FOR FURTHER DEVELOPMENT IF NEEDED
 //    public File zipDirectory(String path) throws IOException {

@@ -153,6 +153,11 @@ public ResponseEntity<DirectoryDto> createDirectory(@RequestBody CreateFolderDto
         folderFacade.deleteMultipleFiles(filesDeleteDto);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @PutMapping(path = "/shared")
+    public ResponseEntity<DirectoryDto> renameSharedFolder(@RequestBody RenameFolderDto renameFolderDto) {
+        return new ResponseEntity<>(folderFacade.renameSharedFolder(renameFolderDto), HttpStatus.OK);
+    }
 }
 
 
