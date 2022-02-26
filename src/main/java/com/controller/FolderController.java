@@ -140,7 +140,7 @@ public class FolderController {
                                                                 @RequestParam(required = false) String fileType,
                                                                 @RequestParam(defaultValue = "ALL", required = false) SearchRangeDto range) {
         return new ResponseEntity<>(folderFacade.searchFolder(folderUuid, fileName, fileType, range), HttpStatus.OK);
-//        return null;
+
     }
 
     @PutMapping(path = "/shared")
@@ -152,6 +152,11 @@ public class FolderController {
     public ResponseEntity<Object> deleteMultipleFiles(@RequestBody FilesDeleteDto filesDeleteDto) {
         folderFacade.deleteMultipleFiles(filesDeleteDto);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping(path = "/{uuid}/owner")
+    public ResponseEntity<UserDto> getFolderOwner(@PathVariable String uuid) {
+        return new ResponseEntity<>(folderFacade.findFolderOwner(uuid), HttpStatus.OK);
     }
 }
 

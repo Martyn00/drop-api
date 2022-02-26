@@ -106,6 +106,7 @@ public class FolderFacade {
         createdFolder.setSubFiles(Collections.emptyList());
         createdFolder.setUuid(UUID.randomUUID().toString());
         createdFolder.setLastModifiedDate(ZonedDateTime.now());
+        createdFolder.setSize(0.0);
         FileTypeModel fileTypeModel = fileTypeService.getFileTypeByName(DIRECTORY_FILE_TYPE);
         createdFolder.setFileTypeModel(fileTypeModel);
         try {
@@ -303,5 +304,16 @@ public class FolderFacade {
     public void deleteMultipleFiles(FilesDeleteDto filesDeleteDto) {
 
         filesDeleteDto.getFilesToDeleteUuids().forEach(this::deleteFileByUuid);
+    }
+
+    public UserDto findFolderOwner(String uuid) {
+        ContentFileModel contentFileModel = contentFileService.getFileByUuid(uuid);
+        RootFolderModel rootFolderModel;
+        if (contentFileModel.getParentFolder() != null) {
+            rootFolderModel = contentFileModel.getRootFolder();
+        } else {
+            rootFolderModel = rootFolderService.getRootFolderByUuid(uuid);
+        }
+        return modelMapper.map(rootFolderModel.getFolderCreator(), UserDto.class);
     }
 }
