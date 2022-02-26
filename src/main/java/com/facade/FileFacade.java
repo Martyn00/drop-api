@@ -54,7 +54,7 @@ public class FileFacade {
             contentFileModel.setFileCreator(rootFolder.getFolderCreator());
             contentFileService.save(contentFileModel);
         }
-        webSocketController.notifySubscribersToTopic("", parentUuid);
+        webSocketController.notifySubscribersToFileChanges("", parentUuid);
     }
 
     public File getFile(String uuid) {
@@ -74,7 +74,7 @@ public class FileFacade {
             filePathChanger.updateFilesOnCopy(fileModel, destinationUuid);
         }
         notifySubscribers(fileModel);
-        webSocketController.notifySubscribersToTopic("", destinationUuid);
+        webSocketController.notifySubscribersToFileChanges("", destinationUuid);
     }
 
 
@@ -88,9 +88,9 @@ public class FileFacade {
 
     private void notifySubscribers(ContentFileModel contentFileModel) {
         if (contentFileModel.getParentFolder() != null) {
-            webSocketController.notifySubscribersToTopic("", contentFileModel.getParentFolder().getUuid());
+            webSocketController.notifySubscribersToFileChanges("", contentFileModel.getParentFolder().getUuid());
         } else {
-            webSocketController.notifySubscribersToTopic("", contentFileModel.getRootFolder().getUuid());
+            webSocketController.notifySubscribersToFileChanges("", contentFileModel.getRootFolder().getUuid());
         }
     }
 }

@@ -118,7 +118,7 @@ public class FolderFacade {
             parentFolder.getSubFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
             contentFileService.save(createdFolder);
-            webSocketController.notifySubscribersToTopic("", parentFolder.getUuid());
+            webSocketController.notifySubscribersToFileChanges("", parentFolder.getUuid());
         } catch (ServiceException ex) {
             RootFolderModel rootFolder = rootFolderService.getRootFolderByUuid(createFolderDto.getFolderId());
             fileutil.checkUniqueName(rootFolder, createFolderDto.getFolderName());
@@ -128,9 +128,10 @@ public class FolderFacade {
             rootFolder.getFiles().add(createdFolder);
             folderCreator.createFolder(createdFolder.getPath());
             contentFileService.save(createdFolder);
-            webSocketController.notifySubscribersToTopic("", rootFolder.getUuid());
+            webSocketController.notifySubscribersToFileChanges("", rootFolder.getUuid());
 
         }
+        notifySubscribersWithAccess(createdFolder.getRootFolder());
         return fileMapper.mapContentFileToDirectoryDto(createdFolder);
     }
 
@@ -149,6 +150,9 @@ public class FolderFacade {
         folderToRename.setLastModifiedDate(ZonedDateTime.now());
         contentFileService.save(folderToRename);
         notifySubscribers(folderToRename);
+        if (folderToRename.getFileTypeModel().getTypeName().equals("directory")) {
+            notifySubscribersWithAccess(folderToRename.getRootFolder());
+        }
         return fileMapper.mapContentFileToDirectoryDto(folderToRename);
     }
 
@@ -176,6 +180,9 @@ public class FolderFacade {
         }
         contentFileService.deleteFileByUuid(uuid);
         folderCreator.deleteFolder(fileToDelete.getPath());
+        if (fileToDelete.getFileTypeModel().getTypeName().equals("directory")) {
+            notifySubscribersWithAccess(fileToDelete.getRootFolder());
+        }
     }
 
     public void createTempDirectoryForUser(String user) {
@@ -288,13 +295,6 @@ public class FolderFacade {
     }
 
     public DirectoryDto renameSharedFolder(RenameFolderDto renameFolderDto) {
-//        RootFolderModel sharedFolder = rootFolderService.getRootFolderByUuid(renameFolderDto.getFolderId());
-//        sharedFolder.setFileName(renameFolderDto.getFolderName());
-//        String oldPath = sharedFolder.getPath();
-//        String[] path = oldPath.split(SLASH);
-//        renamePaths(sharedFolder.getFiles(), renameFolderDto.getFolderName(), path.length - 1);
-//
-//        return fileMapper.mapRootFolderToDirectoryDto(rootFolderService.save(sharedFolder));
 
         RootFolderModel folderToRename = rootFolderService.getRootFolderByUuid(renameFolderDto.getFolderId());
         folderToRename.setFileName(renameFolderDto.getFolderName());
@@ -308,20 +308,20 @@ public class FolderFacade {
         folderToRename.setPath(newPath.toString());
         folderCreator.renameFolder(oldPath, newPath.toString());
         rootFolderService.save(folderToRename);
-        webSocketController.notifySubscribersToTopic("", folderToRename.getUuid());
+        webSocketController.notifySubscribersToFileChanges("", folderToRename.getUuid());
+        notifySubscribersWithAccess(folderToRename);
         return fileMapper.mapRootFolderToDirectoryDto(rootFolderService.save(folderToRename));
     }
 
     private void notifySubscribers(ContentFileModel contentFileModel) {
         if (contentFileModel.getParentFolder() != null) {
-            webSocketController.notifySubscribersToTopic("", contentFileModel.getParentFolder().getUuid());
+            webSocketController.notifySubscribersToFileChanges("", contentFileModel.getParentFolder().getUuid());
         } else {
-            webSocketController.notifySubscribersToTopic("", contentFileModel.getRootFolder().getUuid());
+            webSocketController.notifySubscribersToFileChanges("", contentFileModel.getRootFolder().getUuid());
         }
     }
 
     public void deleteMultipleFiles(FilesDeleteDto filesDeleteDto) {
-
         filesDeleteDto.getFilesToDeleteUuids().forEach(this::deleteFileByUuid);
     }
 
@@ -334,5 +334,14 @@ public class FolderFacade {
             rootFolderModel = rootFolderService.getRootFolderByUuid(uuid);
         }
         return modelMapper.map(rootFolderModel.getFolderCreator(), UserDto.class);
+    }
+
+    public void notifySubscribersWithAccess(RootFolderModel rootFolderModel) {
+        if (rootFolderModel.getShared()) {
+            List<String> uuids = rootFolderModel.getAllowedUsers().stream().map(user -> user.getUuid()).collect(Collectors.toList());
+            uuids.add(rootFolderModel.getFolderCreator().getUuid());
+            uuids.forEach(uuid -> webSocketController.notifySubscribersToFolderChanges("CHANGES DONE TO ROOTFOLDER", uuid));
+        }
+
     }
 }

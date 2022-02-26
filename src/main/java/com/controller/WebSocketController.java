@@ -9,8 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void notifySubscribersToTopic(String message, String uuid) {
+    public void notifySubscribersToFileChanges(String message, String uuid) {
         messagingTemplate.convertAndSend("/topic/" + uuid, message);
+    }
+
+    public void notifySubscribersToFolderChanges(String message, String uuid) {
+        messagingTemplate.convertAndSend("/topic/shared-folders/" + uuid, message);
     }
 }
 
