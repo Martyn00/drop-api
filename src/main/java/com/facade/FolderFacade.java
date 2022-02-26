@@ -288,9 +288,28 @@ public class FolderFacade {
     }
 
     public DirectoryDto renameSharedFolder(RenameFolderDto renameFolderDto) {
-        RootFolderModel sharedFolder = rootFolderService.getRootFolderByUuid(renameFolderDto.getFolderId());
-        sharedFolder.setFileName(renameFolderDto.getFolderName());
-        return fileMapper.mapRootFolderToDirectoryDto(rootFolderService.save(sharedFolder));
+//        RootFolderModel sharedFolder = rootFolderService.getRootFolderByUuid(renameFolderDto.getFolderId());
+//        sharedFolder.setFileName(renameFolderDto.getFolderName());
+//        String oldPath = sharedFolder.getPath();
+//        String[] path = oldPath.split(SLASH);
+//        renamePaths(sharedFolder.getFiles(), renameFolderDto.getFolderName(), path.length - 1);
+//
+//        return fileMapper.mapRootFolderToDirectoryDto(rootFolderService.save(sharedFolder));
+
+        RootFolderModel folderToRename = rootFolderService.getRootFolderByUuid(renameFolderDto.getFolderId());
+        folderToRename.setFileName(renameFolderDto.getFolderName());
+        //set subfolders path
+        String oldPath = folderToRename.getPath();
+        String[] path = oldPath.split(SLASH);
+        renamePaths(folderToRename.getFiles(), renameFolderDto.getFolderName(), path.length - 1);
+//
+//        //set folder path
+        StringBuilder newPath = createNewPath(path, path.length - 1, renameFolderDto.getFolderName());
+        folderToRename.setPath(newPath.toString());
+        folderCreator.renameFolder(oldPath, newPath.toString());
+        rootFolderService.save(folderToRename);
+        webSocketController.notifySubscribersToTopic("", folderToRename.getUuid());
+        return fileMapper.mapRootFolderToDirectoryDto(rootFolderService.save(folderToRename));
     }
 
     private void notifySubscribers(ContentFileModel contentFileModel) {
