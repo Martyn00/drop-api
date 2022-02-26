@@ -28,6 +28,9 @@ public class FileMetadataDto {
     @JsonProperty(value = "path")
     private String path;
 
+    @JsonProperty(value = "fullPath")
+    private String fullPath;
+
     @JsonProperty(value = "parentId")
     private String parentUuid;
 
