@@ -23,6 +23,9 @@ public class DirectoryDto {
     @JsonProperty(value = "path")
     private String path;
 
+    @JsonProperty(value = "fullPath")
+    private String fullPath;
+
     @JsonProperty(value = "subfolders")
     private List<DirectoryDto> subfolders;
 }

@@ -55,6 +55,7 @@ public class FileMapper {
         } else {
             directoryDto.setParentUuid(contentFile.getParentFolder().getUuid());
         }
+        directoryDto.setFullPath(contentFile.getPath());
         return directoryDto;
     }
 

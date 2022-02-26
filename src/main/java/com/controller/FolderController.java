@@ -155,7 +155,7 @@ public class FolderController {
     }
 
     @PutMapping(path = "/{uuid}/owner")
-    public ResponseEntity<UserDto> getFolderOwner(@PathVariable String uuid) {
+    public ResponseEntity<UserDto> getRootFolderOwner(@PathVariable String uuid) {
         return new ResponseEntity<>(folderFacade.findFolderOwner(uuid), HttpStatus.OK);
     }
 }
